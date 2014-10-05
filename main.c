@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /*
  * [X] Run executables without arguments (10)
@@ -17,7 +18,31 @@
  */
 
 #define MAX_LENGTH 1024
+#define MAX_JOBS 10
+#define MAX_ARGS 10
 #define DELIMS " \t\r\n"
+
+int idcount = 1;
+
+struct Job {
+    int id, argc;
+    char *argv[MAX_ARGS];
+
+    Job() {
+      id = 0;
+      argc = 0;
+      for(int i = 0; i < MAX_ARGS; i++){
+        argv[i] = new char[256];
+      }
+    }
+
+    ~Job() {
+      for(int i = 0; i < MAX_ARGS; i++){
+        delete[] argv[i];
+      }
+    }
+};
+
 
 int main(int argc, char **argv, char **envp) {
 	char *cmd;
@@ -25,11 +50,16 @@ int main(int argc, char **argv, char **envp) {
 
 	while(true) {
 		printf("$ ");
-		if(!fgets(line, MAX_LENGTH, stdin)) //fgets => reads all input in string into 'line'
+		if(!fgets(line, MAX_LENGTH, stdin)){ //fgets => reads all input in string into 'line'
 			break;
+    }
 
-		if((line == "exit") || (line == "quit"))
-			exit(0);
+    Job jobs[MAX_JOBS];
+    // Turns input line into list of jobs
+    
+
+    // Execute jobs, using pipes and redirects if necessary
+   
 		system(line);
 	}
 	
