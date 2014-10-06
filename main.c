@@ -25,62 +25,70 @@
 int idcount = 1;
 
 struct Job {
-	int id, argc;
-	char *argv[MAX_ARGS];
+	int id, argNum;
+	char *args[MAX_ARGS];
 
 	Job() {
 		id = 0;
-		argc = 0;
+		argNum = 0;
 		for(int i = 0; i < MAX_ARGS; i++){
-			argv[i] = new char[256];
+			args[i] = new char[256];
 		}
 	}
 
 	~Job() {
 		for(int i = 0; i < MAX_ARGS; i++){
-			delete[] argv[i];
+			delete[] args[i];
 		}
 	}
 };
 
-int parse(string line, Job job1) {
+int parse(char* line, Job* job1) {
 	// Split 'line' on spaces to separate args
+	
+	
 
 	// Add args to job1 struct. First arg is executable, others are parameters
+//	job1.args = 
 
 	// Return number of jobs
 	return 1;
 }
 
-int execute(Job job1) {
+int execute(Job* job1) {
 
-	exit = 0;	
+	int exitbit = 0;	
 
 	// Make system call to execute job1 using args.
-
+	if (strcmp(job1->args[0],"exit") == 0 || strcmp(job1->args[0],"quit") == 0) {
+		exitbit = 1;
+	} else {
+		
+	}
 
 	// Return 0 to continue and 1 to exit. 
-	return exit;
+	return exitbit;
 }
 
 int main(int argc, char **argv, char **envp) {
 	char *cmd;
 	char line[MAX_LENGTH];
-	int exit = 0;
+	int exitbit = 0;
+	int numJobs = 0;
 
-	while(exit == 0) {
+	while(exitbit == 0) {
 		printf("$ ");
 		if(!fgets(line, MAX_LENGTH, stdin)){ //fgets => reads all input in string into 'line'
 			break;
  		}
 
-		Job job1;
+		Job* job1;
 		// Turns input line into job
-		parse(line);
-
+		parse(line, job1);
+		
 
 		// Execute job
-   		exit = execute(job);
+   		exitbit = execute(job1);
 	}
 	
 	return 0;
