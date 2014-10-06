@@ -44,18 +44,31 @@ struct Job {
 };
 
 int parse(string line, Job job1) {
+	// Split 'line' on spaces to separate args
+
+	// Add args to job1 struct. First arg is executable, others are parameters
+
+	// Return number of jobs
 	return 1;
 }
 
 int execute(Job job1) {
-	return 1;
+
+	exit = 0;	
+
+	// Make system call to execute job1 using args.
+
+
+	// Return 0 to continue and 1 to exit. 
+	return exit;
 }
 
 int main(int argc, char **argv, char **envp) {
 	char *cmd;
 	char line[MAX_LENGTH];
+	int exit = 0;
 
-	while(true) {
+	while(exit == 0) {
 		printf("$ ");
 		if(!fgets(line, MAX_LENGTH, stdin)){ //fgets => reads all input in string into 'line'
 			break;
@@ -67,7 +80,7 @@ int main(int argc, char **argv, char **envp) {
 
 
 		// Execute job
-   		execute(job);
+   		exit = execute(job);
 	}
 	
 	return 0;
