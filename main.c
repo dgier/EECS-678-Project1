@@ -25,24 +25,27 @@
 int idcount = 1;
 
 struct Job {
-    int id, argc;
-    char *argv[MAX_ARGS];
+	int id, argc;
+	char *argv[MAX_ARGS];
 
-    Job() {
-      id = 0;
-      argc = 0;
-      for(int i = 0; i < MAX_ARGS; i++){
-        argv[i] = new char[256];
-      }
-    }
+	Job() {
+		id = 0;
+		argc = 0;
+		for(int i = 0; i < MAX_ARGS; i++){
+			argv[i] = new char[256];
+		}
+	}
 
-    ~Job() {
-      for(int i = 0; i < MAX_ARGS; i++){
-        delete[] argv[i];
-      }
-    }
+	~Job() {
+		for(int i = 0; i < MAX_ARGS; i++){
+			delete[] argv[i];
+		}
+	}
 };
 
+int parse(string line, Job job1) {
+	return 1;
+}
 
 int main(int argc, char **argv, char **envp) {
 	char *cmd;
@@ -52,15 +55,15 @@ int main(int argc, char **argv, char **envp) {
 		printf("$ ");
 		if(!fgets(line, MAX_LENGTH, stdin)){ //fgets => reads all input in string into 'line'
 			break;
-    }
+ 		}
 
-    Job jobs[MAX_JOBS];
-    // Turns input line into list of jobs
-    
+		Job job1;
+		// Turns input line into job
+		parse(line);
 
-    // Execute jobs, using pipes and redirects if necessary
-   
-		system(line);
+
+		// Execute jobs, using pipes and redirects if necessary
+   		system(line);
 	}
 	
 	return 0;
