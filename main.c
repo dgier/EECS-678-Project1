@@ -47,6 +47,10 @@ int parse(string line, Job job1) {
 	return 1;
 }
 
+int execute(Job job1) {
+	return 1;
+}
+
 int main(int argc, char **argv, char **envp) {
 	char *cmd;
 	char line[MAX_LENGTH];
@@ -62,8 +66,8 @@ int main(int argc, char **argv, char **envp) {
 		parse(line);
 
 
-		// Execute jobs, using pipes and redirects if necessary
-   		system(line);
+		// Execute job
+   		execute(job);
 	}
 	
 	return 0;
