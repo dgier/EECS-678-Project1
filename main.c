@@ -48,7 +48,7 @@ int parse(char* line, Job* job1) {
 	
 	char* thisArg;
 	thisArg = strtok(line," ");
-	argCount = 0;
+	int argCount = 0;
 	while(thisArg != NULL) {
 		job1->args[argCount] = thisArg;
 		argCount++;
@@ -64,6 +64,7 @@ int parse(char* line, Job* job1) {
 		argcount++;
 	}
 */
+	printf("ArgCount: %s\n", argCount);
 	job1->argNum = argCount;	
 
 	// Return number of jobs
@@ -78,9 +79,9 @@ int execute(Job* job1) {
 	if (strcmp(job1->args[0],"exit") == 0 || strcmp(job1->args[0],"quit") == 0) {
 		exitbit = 1;
 	} else {
-		char* cmd = "";
-		for(i = 0; i < job1->argNum; i++){
-			cmd = strcat(strcat(cmd, " "), job1->args[i]);
+		char cmd[] = "";
+		for(int i = 0; i < job1->argNum; i++){
+			strcat(strcat(cmd, " "), job1->args[i]);
 		}
 		system(cmd);
 	}
