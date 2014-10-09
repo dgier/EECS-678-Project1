@@ -43,29 +43,39 @@ struct Job {
 	}
 };
 
-int parse(char* line, Job* job1) {
-	// Split 'line' on spaces to separate args
-	
+int parse(Job* job1) {
+
+	char line[MAX_LENGTH+1];
+
+	fgets(line, MAX_LENGTH, stdin); //fgets => reads all input in string into 'line'
+		
+	printf("line: %s", line);	
+
 	char* thisArg;
 	thisArg = strtok(line," ");
 	int argCount = 0;
-	while(thisArg != NULL) {
+	while(!(thisArg == NULL)) {
 		job1->args[argCount] = thisArg;
 		argCount++;
-		thisArg = strtok(line," ");
+		thisArg = strtok(NULL," ");
 	}
 
 	// Add args to job1 struct one by one. First arg is executable, others are parameters
-/*	argcount = 0;	
-	while(separator != NULL){
-		job1->args[argcount] = substring(line,0,separator);
-		line = substring(line, separator + 1, line[strlen(line)-(separator + 1)]);
-		separator = strchr(line,' ');
-		argcount++;
+/*	while(thisArg != NULL){
+		job1->args[argCount] = substring(line,0,thisArg);
+		line = substring(line, thisArg + 1, line[strlen(line)-(thisArg + 1)]);
+		thisArg = strchr(line,' ');
+		argCount++;
 	}
-*/
-	printf("ArgCount: %s\n", argCount);
+
+	job1->args[argCount] = line;
+*/	
+	
 	job1->argNum = argCount;	
+
+	for(int i = 0; i < job1->argNum; i++){
+		printf("Arg[%i] = %s\n", i, job1->args[i]);
+	}
 
 	// Return number of jobs
 	return 1;
@@ -91,20 +101,16 @@ int execute(Job* job1) {
 }
 
 int main(int argc, char **argv, char **envp) {
-	char *cmd;
-	char line[MAX_LENGTH];
+	char* cmd;
 	int exitbit = 0;
 	int numJobs = 0;
 
 	while(exitbit == 0) {
 		printf("$ ");
-		if(!fgets(line, MAX_LENGTH, stdin)){ //fgets => reads all input in string into 'line'
-			break;
- 		}
-
+		
 		Job* job1;
 		// Turns input line into job
-		parse(line, job1);
+		parse(job1);
 		
 
 		// Execute job
