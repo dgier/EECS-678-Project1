@@ -81,6 +81,22 @@ int execute(Job* jobs) {
 	if (strcmp(jobs[0].args[0], "exit") == 0 || strcmp(jobs[0].args[0], "quit") == 0) {
 		exitbit = 1;
 
+	// Change the working directory
+	} else if (strcmp(jobs[0].args[0], "cd") == 0){
+		
+		// If there is no argument, change to HOME
+		if (strcmp(jobs[0].args[1], "") == 0){
+			printf("Change working directory to HOME.");
+
+		// If there is an argument, change to given directory
+		} else {
+			printf("Change working directory to %s.", jobs[0].args[1]);
+		}
+
+	// Set PATH or HOME
+	} else if (strcmp(jobs[0].args[0], "set") == 0){
+		printf("Set PATH or HOME");	
+ 
 	// Runs an executable with using arguments in job struct
 	} else {
 		char cmd[MAX_LENGTH] = {0};
