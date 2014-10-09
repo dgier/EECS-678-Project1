@@ -47,17 +47,18 @@ int parse(Job* jobs) {
 
 	char line[MAX_LENGTH+1];
 
-	fgets(line, MAX_LENGTH, stdin); //fgets => reads all input in string into 'line'
+	// Reads input into 'line'
+	fgets(line, MAX_LENGTH, stdin);
 		
 	printf("line: %s", line);	
 
 	char* thisArg;
-	thisArg = strtok(line," ");
+	thisArg = strtok(line," \n");
 	int argCount = 0;
 	while(!(thisArg == NULL)) {
 		strcpy(jobs[0].args[argCount], thisArg);
 		argCount++;
-		thisArg = strtok(NULL," ");
+		thisArg = strtok(NULL," \n");
 	}
 
 	jobs[0].argNum = argCount;	
@@ -75,9 +76,12 @@ int execute(Job* jobs) {
 	int exitbit = 0;	
 
 	printf("args[0] = %s\n", jobs[0].args[0]);
-	// Make system call to execute job1 using args.
-	if (strcmp(jobs[0].args[0], "exit\n") == 0 || strcmp(jobs[0].args[0], "quit\n") == 0) {
+
+	// Checks whether the command is 'exit' or 'quit' and sets the exit bit
+	if (strcmp(jobs[0].args[0], "exit") == 0 || strcmp(jobs[0].args[0], "quit") == 0) {
 		exitbit = 1;
+
+	// Runs an executable with using arguments in job struct
 	} else {
 		char cmd[MAX_LENGTH] = {0};
 		strcat(cmd, jobs[0].args[0]);
@@ -100,11 +104,12 @@ int main(int argc, char **argv, char **envp) {
 		printf("$ ");
 		
 		Job jobs[MAX_JOBS];
-		// Turns input line into job
+
+		// Turns input into jobs
 		parse(jobs);
 		
 
-		// Execute job
+		// Executes jobs
    		exitbit = execute(jobs);
 	}
 	
