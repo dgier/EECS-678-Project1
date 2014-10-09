@@ -43,7 +43,7 @@ struct Job {
 	}
 };
 
-int parse(Job* job1) {
+int parse(Job* jobs) {
 
 	char line[MAX_LENGTH+1];
 
@@ -55,49 +55,42 @@ int parse(Job* job1) {
 	thisArg = strtok(line," ");
 	int argCount = 0;
 	while(!(thisArg == NULL)) {
-		job1->args[argCount] = thisArg;
+		strcpy(jobs[0].args[argCount], thisArg);
 		argCount++;
 		thisArg = strtok(NULL," ");
 	}
 
-	// Add args to job1 struct one by one. First arg is executable, others are parameters
-/*	while(thisArg != NULL){
-		job1->args[argCount] = substring(line,0,thisArg);
-		line = substring(line, thisArg + 1, line[strlen(line)-(thisArg + 1)]);
-		thisArg = strchr(line,' ');
-		argCount++;
-	}
+	jobs[0].argNum = argCount;	
 
-	job1->args[argCount] = line;
-*/	
-	
-	job1->argNum = argCount;	
-
-	for(int i = 0; i < job1->argNum; i++){
-		printf("Arg[%i] = %s\n", i, job1->args[i]);
+	for(int i = 0; i < jobs[0].argNum; i++){
+		printf("Arg[%i] = %s\n", i, jobs[0].args[i]);
 	}
 
 	// Return number of jobs
 	return 1;
 }
 
-int execute(Job* job1) {
+int execute(Job* jobs) {
 
 	int exitbit = 0;	
 
-	printf("args[0] = %s\n", job1->args[0]);
-	printf("string compare: %i\n", strcmp("exit",job1->args[0]));
+	printf("args[0] = %s\n", jobs[0].args[0]);
+	printf("string compare: %i\n", strcmp("exit",jobs[0].args[0]));
 	// Make system call to execute job1 using args.
-	if (job1->args[0] == "exit" || job1->args[0] == "quit") {
+	if (strcmp(jobs[0].args[0], "exit") == 0 || strcmp(jobs[0].args[0], "quit") == 0) {
 		printf("exit/quit read\n");
-		printf("args[0] = %s\n", job1->args[0]);
+		printf("args[0] = %s\n", jobs[0].args[0]);
 		exitbit = 1;
 	} else {
 		printf("command not exit/quit\n");
-		printf("args[0] = %s\n", job1->args[0]);
-		char cmd[] = "";
-		for(int i = 0; i < job1->argNum; i++){
-			strcat(strcat(cmd, " "), job1->args[i]);
+		printf("args[0] = %s\n", jobs[0].args[0]);
+		printf("argNum = %i\n", jobs[0].argNum);
+		char cmd[MAX_LENGTH] = {0};
+		strcat(cmd, jobs[0].args[0]);
+		for(int i = 1; i < jobs[0].argNum; i++){
+			printf("cmdstart: %s\n", cmd);
+			strcat(strcat(cmd, " "), jobs[0].args[i]);
+			printf("cmdend: %s\n", cmd);
 		}
 		system(cmd);
 	}
@@ -114,13 +107,13 @@ int main(int argc, char **argv, char **envp) {
 	while(exitbit == 0) {
 		printf("$ ");
 		
-		Job* job1;
+		Job jobs[MAX_JOBS];
 		// Turns input line into job
-		parse(job1);
+		parse(jobs);
 		
 
 		// Execute job
-   		exitbit = execute(job1);
+   		exitbit = execute(jobs);
 	}
 	
 	return 0;
