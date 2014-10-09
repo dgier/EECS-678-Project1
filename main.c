@@ -6,7 +6,7 @@
  * [X] Run executables without arguments (10)
  * [X] Run executables with arguments (10)
  * [ ] set for HOME and PATH work properly (5)
- * [?] exit and quit work properly (5)
+ * [X] exit and quit work properly (5)
  * [ ] cd (with and without arguments) works properly (5)
  * [ ] PATH works properly. Give error messages when the executable is not found (10)
  * [ ] Child processes inherit the environment (5)
@@ -75,22 +75,14 @@ int execute(Job* jobs) {
 	int exitbit = 0;	
 
 	printf("args[0] = %s\n", jobs[0].args[0]);
-	printf("string compare: %i\n", strcmp("exit",jobs[0].args[0]));
 	// Make system call to execute job1 using args.
-	if (strcmp(jobs[0].args[0], "exit") == 0 || strcmp(jobs[0].args[0], "quit") == 0) {
-		printf("exit/quit read\n");
-		printf("args[0] = %s\n", jobs[0].args[0]);
+	if (strcmp(jobs[0].args[0], "exit\n") == 0 || strcmp(jobs[0].args[0], "quit\n") == 0) {
 		exitbit = 1;
 	} else {
-		printf("command not exit/quit\n");
-		printf("args[0] = %s\n", jobs[0].args[0]);
-		printf("argNum = %i\n", jobs[0].argNum);
 		char cmd[MAX_LENGTH] = {0};
 		strcat(cmd, jobs[0].args[0]);
 		for(int i = 1; i < jobs[0].argNum; i++){
-			printf("cmdstart: %s\n", cmd);
 			strcat(strcat(cmd, " "), jobs[0].args[i]);
-			printf("cmdend: %s\n", cmd);
 		}
 		system(cmd);
 	}
