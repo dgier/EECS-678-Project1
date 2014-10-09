@@ -85,10 +85,16 @@ int execute(Job* job1) {
 
 	int exitbit = 0;	
 
+	printf("args[0] = %s\n", job1->args[0]);
+	printf("string compare: %i\n", strcmp("exit",job1->args[0]));
 	// Make system call to execute job1 using args.
-	if (strcmp(job1->args[0],"exit") == 0 || strcmp(job1->args[0],"quit") == 0) {
+	if (job1->args[0] == "exit" || job1->args[0] == "quit") {
+		printf("exit/quit read\n");
+		printf("args[0] = %s\n", job1->args[0]);
 		exitbit = 1;
 	} else {
+		printf("command not exit/quit\n");
+		printf("args[0] = %s\n", job1->args[0]);
 		char cmd[] = "";
 		for(int i = 0; i < job1->argNum; i++){
 			strcat(strcat(cmd, " "), job1->args[i]);
