@@ -46,10 +46,25 @@ struct Job {
 int parse(char* line, Job* job1) {
 	// Split 'line' on spaces to separate args
 	
-	
+	char* thisArg;
+	thisArg = strtok(line," ");
+	argCount = 0;
+	while(thisArg != NULL) {
+		job1->args[argCount] = thisArg;
+		argCount++;
+		thisArg = strtok(line," ");
+	}
 
-	// Add args to job1 struct. First arg is executable, others are parameters
-//	job1.args = 
+	// Add args to job1 struct one by one. First arg is executable, others are parameters
+/*	argcount = 0;	
+	while(separator != NULL){
+		job1->args[argcount] = substring(line,0,separator);
+		line = substring(line, separator + 1, line[strlen(line)-(separator + 1)]);
+		separator = strchr(line,' ');
+		argcount++;
+	}
+*/
+	job1->argNum = argCount;	
 
 	// Return number of jobs
 	return 1;
@@ -63,7 +78,11 @@ int execute(Job* job1) {
 	if (strcmp(job1->args[0],"exit") == 0 || strcmp(job1->args[0],"quit") == 0) {
 		exitbit = 1;
 	} else {
-		
+		char* cmd = "";
+		for(i = 0; i < job1->argNum; i++){
+			cmd = strcat(strcat(cmd, " "), job1->args[i]);
+		}
+		system(cmd);
 	}
 
 	// Return 0 to continue and 1 to exit. 
