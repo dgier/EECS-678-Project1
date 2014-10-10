@@ -19,9 +19,10 @@
  * [ ] Report (10)
  * [ ] Bonus points:
  * 	[ ] Support multiple pipes in one command (10)
- * 	[ ] kill command delivers signals to background processes. The kill 		command has the format: kill SIGNUM, JOBID, where SIGNUM is an integer
-	specifying the signal number, and JOBID is an integer that specifies
-	the job that should receive the signal (5)
+ * 	[ ] kill command delivers signals to background processes. The kill 		
+ *		command has the format: kill SIGNUM, JOBID, where SIGNUM is an integer
+ *		specifying the signal number, and JOBID is an integer that specifies
+ *		the job that should receive the signal (5)
  */
 
 #define MAX_LENGTH 1024
@@ -31,12 +32,13 @@
 #define DELIMS " \t\r\n"
 
 int idcount = 1;
+//int numJobs;
 extern char ** environ;
 
 struct Job {
 	int id, argNum;
 	char *args[MAX_ARGS];
-
+	
 	Job() {
 		id = idcount;
 		idcount++;
@@ -45,7 +47,7 @@ struct Job {
 			args[i] = new char[256];
 		}
 	}
-
+	
 	~Job() {
 		for(int i = 0; i < MAX_ARGS; i++){
 			delete[] args[i];
@@ -54,14 +56,14 @@ struct Job {
 };
 
 int parse(Job* jobs) {
-
+	
 	char line[MAX_LENGTH+1];
-
+	
 	// Reads input into 'line'
 	fgets(line, MAX_LENGTH, stdin);
-		
+	
 	printf("line: %s", line);	
-
+	
 	char* thisArg;
 	thisArg = strtok(line," \n");
 	int argCount = 0;
@@ -70,75 +72,79 @@ int parse(Job* jobs) {
 		argCount++;
 		thisArg = strtok(NULL," =\n");
 	}
-
+	
 	jobs[0].argNum = argCount;	
-
+	
 	for(int i = 0; i < jobs[0].argNum; i++){
 		printf("Arg[%i] = %s\n", i, jobs[0].args[i]);
 	}
-
+	
 	// Return number of jobs
 	return 1;
 }
 
-int execute(Job* jobs) {
-
+int execute(Job* jobs, int numJobs) {
+	
 	int exitbit = 0;	
-
-	printf("args[0] = %s\n", jobs[0].args[0]);
-
-	// Checks whether the command is 'exit' or 'quit' and sets the exit bit
-	if (strcmp(jobs[0].args[0], "exit") == 0 || strcmp(jobs[0].args[0], "quit") == 0) {
-		exitbit = 1;
-
-	// Change the working directory
-	} else if (strcmp(jobs[0].args[0], "cd") == 0){
+	
+	for (int i = 0; i < numJobs; i++) {		
 		
-		// If there is no argument, change to HOME
-		if (jobs[0].argNum < 2){
-			printf("Change working directory to HOME.\n");
-			if(chdir(getenv("HOME")) < 0) {
-				printf("ERROR: changing directory to HOME");
+		printf("args[0] = %s\n", jobs[i].args[0]);
+		
+		// Checks whether the command is 'exit' or 'quit' and sets the exit bit
+		if (strcmp(jobs[i].args[0], "exit") == 0 || strcmp(jobs[i].args[0], "quit") == 0) {
+			exitbit = 1;
+			
+			// Change the working directory
+		} else if (strcmp(jobs[i].args[0], "cd") == 0){
+			
+			// If there is no argument, change to HOME
+			if (jobs[i].argNum < 2){
+				printf("Change working directory to HOME.\n");
+				if(chdir(getenv("HOME")) < 0) {
+					printf("ERROR: changing directory to HOME\n");
+				}
+				
+				// If there is an argument, change to given directory
+			} else {
+				printf("Change working directory to %s.\n", jobs[i].args[1]);
+				if(chdir(jobs[i].args[1]) < 0){
+					printf("ERROR: changing directory to %s\n", jobs[i].args[1]);
+				}
 			}
-
-		// If there is an argument, change to given directory
+			
+			// Set PATH or HOME
+		} else if (strcmp(jobs[i].args[0], "set") == 0){
+			printf("Set environment (generally PATH or HOME)\n");
+			
+			if(setenv(jobs[i].args[1], jobs[i].args[2], 1) < 0){
+				printf("ERROR: set for %s as %s\n", jobs[i].args[1], jobs[i].args[2]);
+			}
+			
+			
+			// Runs an executable with using arguments in job struct
 		} else {
-			printf("Change working directory to %s.\n", jobs[0].args[1]);
-			if(chdir(jobs[0].args[1]) < 0){
-				printf("ERROR: changing directory to %s\n");
+			/*		char cmd[MAX_LENGTH] = {0};
+			 strcat(cmd, jobs[i].args[0]);
+			 for(int i = 1; i < jobs[i].argNum; i++){
+			 strcat(strcat(cmd, " "), jobs[i].args[i]);
+			 }
+			 */
+			
+			// Set argument after last to NULL so exec will know when to stop
+			jobs[i].args[jobs[i].argNum] = NULL;
+			
+			// Execute file using arguments
+			//if(execvpe(jobs[i].args[0], jobs[i].args, environ) < 0){//linux
+			if(execve(jobs[i].args[0], jobs[i].args, environ) < 0){//os x
+				printf("ERROR: exec for %s\n", jobs[i].args[0]);
+				printf("ERROR: most likely %s not in PATH\n", jobs[i].args[0]);
 			}
+			
+			// system(cmd);
 		}
-
-	// Set PATH or HOME
-	} else if (strcmp(jobs[0].args[0], "set") == 0){
-		printf("Set environment (generally PATH or HOME)\n");
-
-		if(setenv(jobs[0].args[1], jobs[0].args[2], 1) < 0){
-			printf("ERROR: set for %s as %s\n", jobs[0].args[1], jobs[0].args[2]);
-		}
-
- 
-	// Runs an executable with using arguments in job struct
-	} else {
-/*		char cmd[MAX_LENGTH] = {0};
-		strcat(cmd, jobs[0].args[0]);
-		for(int i = 1; i < jobs[0].argNum; i++){
-			strcat(strcat(cmd, " "), jobs[0].args[i]);
-		}
-*/
-
-		// Set argument after last to NULL so exec will know when to stop
-		jobs[0].args[jobs[0].argNum] = NULL;
-
-		// Execute file using arguments
-		if(execvpe(jobs[0].args[0], jobs[0].args, environ) < 0){
-			printf("ERROR: exec for %s\n", jobs[0].args[0]);
-			printf("ERROR: most likely %s not in PATH", jobs[0].args[0]);
-		}
-
-		// system(cmd);
 	}
-
+	printf("exitbit leaving execute %i\n", exitbit);
 	// Return 0 to continue and 1 to exit. 
 	return exitbit;
 }
@@ -148,22 +154,30 @@ int main(int argc, char **argv, char **envp) {
 	char dir[DIR_LENGTH];
 	int exitbit = 0;
 	int numJobs = 0;
-
+	
 	getcwd(dir, DIR_LENGTH);
-
+	int iters = 0;
 	while(exitbit == 0) {
+		printf("iters = %i\n", iters);
 		printf("$ ");
 		
 		Job jobs[MAX_JOBS];
-
+		
 		// Turns input into jobs
-		parse(jobs);
+		numJobs = parse(jobs);
+		
+		if (numJobs>0) {
+			exitbit = execute(jobs, numJobs);
+		} else {
+			exitbit = 1;
+			printf("numJobs = %i, exiting loop", numJobs);
+		}
 		
 		// Executes jobs
-   		exitbit = execute(jobs);
-
+   		//exitbit = execute(jobs, numJobs);
+		
 		printf("exitbit: %i\n", exitbit);
 	}
-	
+	printf("goodbye\n");
 	return 0;
 }
