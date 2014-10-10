@@ -18,8 +18,8 @@
  * [ ] Supports reading commands from prompt and from file (10)
  * [ ] Report (10)
  * [ ] Bonus points:
- * 	[ ] Support multiple pipes in one command (10)
- * 	[ ] kill command delivers signals to background processes. The kill 		
+ *  [ ]	Support multiple pipes in one command (10)
+ *  [ ]	kill command delivers signals to background processes. The kill 		
  *		command has the format: kill SIGNUM, JOBID, where SIGNUM is an integer
  *		specifying the signal number, and JOBID is an integer that specifies
  *		the job that should receive the signal (5)
@@ -77,10 +77,10 @@ int parse(Job* jobs) {
 		
 		if (strcmp(thisArg, "&")) {
 			jobs[jobCount].background = true;
-		} else if (strcmp(thisArg, "|") {
-			jobs[jobCount].outPipeId = id+1; //let the curr job know who to output to the next job
+		} else if (strcmp(thisArg, "|")) {
+			jobs[jobCount].outPipeId = jobs[jobCount].id+1; //let the curr job know who to output to the next job
 			jobs[jobCount+1].inPipeId = jobs[jobCount].id; //let the new job know who take input from NOTE MAY CAUSE SEG FAULT CHECK THIS
-			jobCount++; //starting to read new job to pipe to
+			jobCount++; //starting to read new job to pipe to, this should allow multiple pipes per input line once implemented
 		}
 		
 		argCount++;
