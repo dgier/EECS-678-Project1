@@ -8,7 +8,7 @@
  * [X] Run executables with arguments (10)
  * [ ] set for HOME and PATH work properly (5)
  * [X] exit and quit work properly (5)
- * [ ] cd (with and without arguments) works properly (5)
+ * [X] cd (with and without arguments) works properly (5)
  * [ ] PATH works properly. Give error messages when the executable is not found (10)
  * [ ] Child processes inherit the environment (5)
  * [ ] Allow background/foreground execution (&) (5)
@@ -60,7 +60,7 @@ int parse(Job* jobs) {
 	while(!(thisArg == NULL)) {
 		strcpy(jobs[0].args[argCount], thisArg);
 		argCount++;
-		thisArg = strtok(NULL," \n");
+		thisArg = strtok(NULL," =\n");
 	}
 
 	jobs[0].argNum = argCount;	
@@ -88,18 +88,20 @@ int execute(Job* jobs) {
 		
 		// If there is no argument, change to HOME
 		if (jobs[0].argNum < 2){
-			printf("Change working directory to HOME.");
+			printf("Change working directory to HOME.\n");
 			chdir(getenv("HOME"));
 
 		// If there is an argument, change to given directory
 		} else {
-			printf("Change working directory to %s.", jobs[0].args[1]);
+			printf("Change working directory to %s.\n", jobs[0].args[1]);
 			chdir(jobs[0].args[1]);
 		}
 
 	// Set PATH or HOME
 	} else if (strcmp(jobs[0].args[0], "set") == 0){
-		printf("Set PATH or HOME");	
+		printf("Set environment (generally PATH or HOME)\n");
+
+		setenv(jobs[0].args[1], jobs[0].args[2], 1);
  
 	// Runs an executable with using arguments in job struct
 	} else {
