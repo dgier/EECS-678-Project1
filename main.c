@@ -33,13 +33,13 @@
 
 int idcount = 0;
 extern char ** environ;
-pid_t pid;
+
 
 struct Job {
 	int id, argNum, outPipeId, inPipeId;
 	char *args[MAX_ARGS];
 	bool background;
-	FILE * input, output;
+	FILE* input, output;
 	
 	Job() {
 		id = idcount;
@@ -78,7 +78,7 @@ int parse(Job* jobs) {
 		if (strcmp(thisArg, "&")) {
 			jobs[currJob].background = true;
 		} else if (strcmp(thisArg, "|")) {
-			jobs[currJob+1]=Job();
+			jobs[currJob+1]=Job(); //create next job to output to
 			jobs[currJob].outPipeId = jobs[currJob+1].id; //let the curr job know who to output to the next job
 			jobs[currJob+1].inPipeId = jobs[currJob].id; //let the new job know who take input from 
 			currJob++; //starting to read new job to pipe to, this should allow multiple pipes per input line once implemented
@@ -86,14 +86,19 @@ int parse(Job* jobs) {
 			thisArg = strtok(NULL, " =\n");	//grab next argument (should be the file name)
 			argCount++;
 			jobs[currJob].input = fopen(thisArg, "r"); //open file in read only
+			if (jobs[currJob].input == NULL) {
+				perror ("Error opening input file\n");
+			}
 		} else if (strcmp(thisArg, ">")) {
-			thisArg = strtok(NULL, " =\n");	//grab next argument (should be the file name)
+			thisArg = strtok(NULL, " ");	//grab next argument (should be the file name)
 			argCount++;
 			jobs[currJob].output = fopen(thisArg, "w"); //open file in write only, if file of same name already exists the orignial is discarded
+			//if (jobs[currJob].output == NULL) {
+			//	perror ("Error opeing output file\n"); //opening in write only should create the file if nonexistent hopefully this line is redundant
+			//}
 		} else {
 			strcpy(jobs[currJob].args[argCount], thisArg); //only copy into currJob's arguments if current input is not any of the above
 		}
-
 		
 		argCount++;
 		thisArg = strtok(NULL," =\n");
@@ -111,8 +116,11 @@ int parse(Job* jobs) {
 
 int execute(Job* jobs, int numJobs) {
 	
-	int exitbit = 0;	
-	
+	int exitbit = 0;
+	if (numJobs > 1) { //if numJobs is greater than 1 there is a pipe so pipefd must be created
+		int	pipefd[numJobs-1][2]; //create an array of pipefd's size equal to # of pipes
+	}
+	pid_t pid;
 	for (int i = 0; i < numJobs; i++) {		
 		
 		printf("args[0] = %s\n", jobs[i].args[0]);
@@ -167,7 +175,7 @@ int execute(Job* jobs, int numJobs) {
 			pid=fork();
 			if (pid == 0) {
 				//childProcesses;
-				if ((jobs[i].inPipeId != -1) || (jobs[i].outPipeId != -1))) { //remember by default all id's > -1 so -1 means empty
+				if ((jobs[i].inPipeId != -1) || (jobs[i].outPipeId != -1)) { //remember by default all id's > -1 so -1 means empty
 					if (jobs[i].inPipeId != -1) {
 						//set up pipe to read from job[inPipeId]
 					}
@@ -208,8 +216,7 @@ int main(int argc, char **argv, char **envp) {
 	getcwd(dir, DIR_LENGTH);
 	int iters = 0;
 	while(exitbit == 0) {
-		printf("iters = %i\n", iters);
-		printf("$ ");
+		printf("iters = %i\n$ ", iters);
 		
 		Job jobs[MAX_JOBS];
 		
