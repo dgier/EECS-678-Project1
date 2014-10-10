@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 /*
  * [X] Run executables without arguments (10)
@@ -88,7 +89,7 @@ int execute(Job* jobs) {
 		// If there is no argument, change to HOME
 		if (jobs[0].argNum < 2){
 			printf("Change working directory to HOME.");
-			chdir(getenv("HOME");
+			chdir(getenv("HOME"));
 
 		// If there is an argument, change to given directory
 		} else {
