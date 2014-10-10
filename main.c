@@ -31,7 +31,7 @@
 #define MAX_ARGS 10
 #define DELIMS " \t\r\n"
 
-int idcount = 1;
+int idcount = 0;
 extern char ** environ;
 pid_t pid;
 
@@ -45,8 +45,8 @@ struct Job {
 		id = idcount;
 		idcount++;
 		argNum = 0;
-		outPipeId = 0;
-		inPipeId = 0; //idcount starts at 1 so if 0, not piping to/from other job.
+		outPipeId = -1;
+		inPipeId = -1; //idcount starts at 0 so if -1, not piping to/from other job.
 		background = false;
 		for(int i = 0; i < MAX_ARGS; i++){
 			args[i] = new char[256];
@@ -71,30 +71,42 @@ int parse(Job* jobs) {
 	
 	char* thisArg;
 	thisArg = strtok(line," \n");
-	int argCount = 0, jobCount = 0; 
+	int argCount = 0, currJob = 0; 
 	while(!(thisArg == NULL)) {
-		strcpy(jobs[jobCount].args[argCount], thisArg);
+		
 		
 		if (strcmp(thisArg, "&")) {
-			jobs[jobCount].background = true;
+			jobs[currJob].background = true;
 		} else if (strcmp(thisArg, "|")) {
-			jobs[jobCount].outPipeId = jobs[jobCount].id+1; //let the curr job know who to output to the next job
-			jobs[jobCount+1].inPipeId = jobs[jobCount].id; //let the new job know who take input from NOTE MAY CAUSE SEG FAULT CHECK THIS
-			jobCount++; //starting to read new job to pipe to, this should allow multiple pipes per input line once implemented
+			jobs[currJob+1]=Job();
+			jobs[currJob].outPipeId = jobs[currJob+1].id; //let the curr job know who to output to the next job
+			jobs[currJob+1].inPipeId = jobs[currJob].id; //let the new job know who take input from 
+			currJob++; //starting to read new job to pipe to, this should allow multiple pipes per input line once implemented
+		} else if (strcmp(thisArg, "<")) {
+			thisArg = strtok(NULL, " =\n");	//grab next argument (should be the file name)
+			argCount++;
+			jobs[currJob].input = fopen(thisArg, "r"); //open file in read only
+		} else if (strcmp(thisArg, ">")) {
+			thisArg = strtok(NULL, " =\n");	//grab next argument (should be the file name)
+			argCount++;
+			jobs[currJob].output = fopen(thisArg, "w"); //open file in write only, if file of same name already exists the orignial is discarded
+		} else {
+			strcpy(jobs[currJob].args[argCount], thisArg); //only copy into currJob's arguments if current input is not any of the above
 		}
+
 		
 		argCount++;
 		thisArg = strtok(NULL," =\n");
 	}
 	
-	jobs[jobCount].argNum = argCount;	
+	jobs[currJob].argNum = argCount;	
 	
 	for(int i = 0; i < jobs[0].argNum; i++){
 		printf("Arg[%i] = %s\n", i, jobs[0].args[i]);
 	}
-	
+	printf("%i jobs\n", currJob+1);
 	// Return number of jobs
-	return jobCount+1;
+	return currJob+1;
 }
 
 int execute(Job* jobs, int numJobs) {
@@ -155,7 +167,14 @@ int execute(Job* jobs, int numJobs) {
 			pid=fork();
 			if (pid == 0) {
 				//childProcesses;
-				printf("childProcesess\n");
+				if ((jobs[i].inPipeId != -1) || (jobs[i].outPipeId != -1))) { //remember by default all id's > -1 so -1 means empty
+					if (jobs[i].inPipeId != -1) {
+						//set up pipe to read from job[inPipeId]
+					}
+					if (jobs[i].outPipeId != -1){
+						//set up pipe to write to job[outPipeId]
+					}
+				}
 				
 			} else {
 				printf("parentProcess\n");
