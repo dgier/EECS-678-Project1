@@ -31,7 +31,7 @@
 #define MAX_ARGS 10
 #define DELIMS " \t\r\n"
 
-int idcount = 1;
+int idcount = 0;
 extern char ** environ;
 pid_t pid;
 
@@ -39,7 +39,8 @@ struct Job {
 	int id, argNum, outPipeId, inPipeId;
 	char *args[MAX_ARGS];
 	bool background;
-	FILE * input, output;
+	FILE * input;
+	FILE * output;
 	
 	Job() {
 		id = idcount;
@@ -71,23 +72,30 @@ int parse(Job* jobs) {
 	
 	char* thisArg;
 	thisArg = strtok(line," \n");
-	int argCount = 0, jobCount = 0; 
+	int argCount = 0, currJob = 0; 
 	while(!(thisArg == NULL)) {
-		strcpy(jobs[jobCount].args[argCount], thisArg);
+		strcpy(jobs[currJob].args[argCount], thisArg);
 		
 		if (strcmp(thisArg, "&")) {
-			jobs[jobCount].background = true;
+			jobs[currJob].background = true;
 		} else if (strcmp(thisArg, "|")) {
-			jobs[jobCount+1]=Job(); //create next job to output to
-			jobs[jobCount].outPipeId = jobs[jobCount].id+1; //let the curr job know who to output to the next job
-			jobs[jobCount+1].inPipeId = jobs[jobCount].id; //let the new job know who take input from
-			jobCount++; //starting to read new job to pipe to, this should allow multiple pipes per input line once implemented
+			jobs[currJob+1]=Job(); //create next job to output to
+			jobs[currJob].outPipeId = jobs[currJob].id+1; //let the curr job know who to output to the next job
+			jobs[currJob+1].inPipeId = jobs[currJob].id; //let the new job know who take input from
+			currJob++; //starting to read new job to pipe to, this should allow multiple pipes per input line once implemented
 		} else if (strcmp(thisArg, "<")) {
 			thisArg = strtok(NULL, " =\n");	//grab next argument (should be the file name)
 			argCount++;
-			jobs[jobCount].input = fopen(thisArg, "r"); //open file in read only
-			if (jobs[jobCount].input == NULL) {
+			jobs[currJob].input = fopen(thisArg, "r"); //open file in read only
+			if (jobs[currJob].input == NULL) {
 				perror ("Error opening input file\n");
+			}
+		} else if (strcmp(thisArg, ">")) {
+			thisArg = strtok(NULL, " =\n");	//grab next argument (should be the file name)
+			argCount++;
+			jobs[currJob].output = fopen(thisArg, "w"); //open file in write only
+			if (jobs[currJob].output == NULL) {
+				perror ("Error opening output file\n");
 			}
 		} 
 
@@ -96,14 +104,14 @@ int parse(Job* jobs) {
 		thisArg = strtok(NULL," =\n");
 	}
 	
-	jobs[jobCount].argNum = argCount;	
+	jobs[currJob].argNum = argCount;	
 	
 	for(int i = 0; i < jobs[0].argNum; i++){
 		printf("Arg[%i] = %s\n", i, jobs[0].args[i]);
 	}
 	
 	// Return number of jobs
-	return jobCount+1;
+	return currJob+1;
 }
 
 int execute(Job* jobs, int numJobs) {
