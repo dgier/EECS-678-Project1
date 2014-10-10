@@ -78,10 +78,19 @@ int parse(Job* jobs) {
 		if (strcmp(thisArg, "&")) {
 			jobs[jobCount].background = true;
 		} else if (strcmp(thisArg, "|")) {
+			jobs[jobCount+1]=Job(); //create next job to output to
 			jobs[jobCount].outPipeId = jobs[jobCount].id+1; //let the curr job know who to output to the next job
-			jobs[jobCount+1].inPipeId = jobs[jobCount].id; //let the new job know who take input from NOTE MAY CAUSE SEG FAULT CHECK THIS
+			jobs[jobCount+1].inPipeId = jobs[jobCount].id; //let the new job know who take input from
 			jobCount++; //starting to read new job to pipe to, this should allow multiple pipes per input line once implemented
-		}
+		} else if (strcmp(thisArg, "<")) {
+			thisArg = strtok(NULL, " =\n");	//grab next argument (should be the file name)
+			argCount++;
+			jobs[jobCount].input = fopen(thisArg, "r"); //open file in read only
+			if (jobs[jobCount].input == NULL) {
+				perror ("Error opening input file\n");
+			}
+		} 
+
 		
 		argCount++;
 		thisArg = strtok(NULL," =\n");
