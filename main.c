@@ -97,29 +97,44 @@ int execute(Job* jobs) {
 		// If there is no argument, change to HOME
 		if (jobs[0].argNum < 2){
 			printf("Change working directory to HOME.\n");
-			chdir(getenv("HOME"));
+			if(chdir(getenv("HOME")) < 0) {
+				printf("ERROR: changing directory to HOME");
+			}
 
 		// If there is an argument, change to given directory
 		} else {
 			printf("Change working directory to %s.\n", jobs[0].args[1]);
-			chdir(jobs[0].args[1]);
+			if(chdir(jobs[0].args[1]) < 0){
+				printf("ERROR: changing directory to %s\n");
+			}
 		}
 
 	// Set PATH or HOME
 	} else if (strcmp(jobs[0].args[0], "set") == 0){
 		printf("Set environment (generally PATH or HOME)\n");
 
-		if(setenv(jobs[0].args[1], jobs[0].args[2], 1);
+		if(setenv(jobs[0].args[1], jobs[0].args[2], 1) < 0){
+			printf("ERROR: set for %s as %s\n", jobs[0].args[1], jobs[0].args[2]);
+		}
+
  
 	// Runs an executable with using arguments in job struct
 	} else {
-		char cmd[MAX_LENGTH] = {0};
+/*		char cmd[MAX_LENGTH] = {0};
 		strcat(cmd, jobs[0].args[0]);
 		for(int i = 1; i < jobs[0].argNum; i++){
 			strcat(strcat(cmd, " "), jobs[0].args[i]);
 		}
+*/
 
-		execvpe(jobs[0].args[0], jobs[0].args, env);
+		// Set argument after last to NULL so exec will know when to stop
+		jobs[0].args[jobs[0].argNum] = NULL;
+
+		// Execute file using arguments
+		if(execvpe(jobs[0].args[0], jobs[0].args, environ) < 0){
+			printf("ERROR: exec for %s\n", jobs[0].args[0]);
+		}
+
 		// system(cmd);
 	}
 
