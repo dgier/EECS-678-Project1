@@ -18,6 +18,7 @@
  */
 
 #define MAX_LENGTH 1024
+#define DIR_LENGTH 1024
 #define MAX_JOBS 10
 #define MAX_ARGS 10
 #define DELIMS " \t\r\n"
@@ -85,12 +86,14 @@ int execute(Job* jobs) {
 	} else if (strcmp(jobs[0].args[0], "cd") == 0){
 		
 		// If there is no argument, change to HOME
-		if (strcmp(jobs[0].args[1], "") == 0){
+		if (jobs[0].argNum < 2){
 			printf("Change working directory to HOME.");
+			chdir(getenv("HOME");
 
 		// If there is an argument, change to given directory
 		} else {
 			printf("Change working directory to %s.", jobs[0].args[1]);
+			chdir(jobs[0].args[1]);
 		}
 
 	// Set PATH or HOME
@@ -112,9 +115,12 @@ int execute(Job* jobs) {
 }
 
 int main(int argc, char **argv, char **envp) {
-	char* cmd;
+	
+	char dir[DIR_LENGTH];
 	int exitbit = 0;
 	int numJobs = 0;
+
+	getcwd(dir, DIR_LENGTH);
 
 	while(exitbit == 0) {
 		printf("$ ");
