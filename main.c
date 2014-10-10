@@ -208,6 +208,7 @@ int main(int argc, char **argv, char **envp) {
    		//exitbit = execute(jobs, numJobs);
 		
 		printf("exitbit: %i\n", exitbit);
+		iters++;
 	}
 	printf("goodbye\n");
 	return 0;
