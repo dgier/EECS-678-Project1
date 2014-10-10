@@ -32,17 +32,20 @@
 #define DELIMS " \t\r\n"
 
 int idcount = 1;
-//int numJobs;
 extern char ** environ;
+pid_t pid;
 
 struct Job {
 	int id, argNum;
 	char *args[MAX_ARGS];
+	bool background;
+	FILE * input, output;
 	
 	Job() {
 		id = idcount;
 		idcount++;
 		argNum = 0;
+		background = false;
 		for(int i = 0; i < MAX_ARGS; i++){
 			args[i] = new char[256];
 		}
@@ -134,12 +137,27 @@ int execute(Job* jobs, int numJobs) {
 			// Set argument after last to NULL so exec will know when to stop
 			jobs[i].args[jobs[i].argNum] = NULL;
 			
+			
+			
 			// Execute file using arguments
-			//if(execvpe(jobs[i].args[0], jobs[i].args, environ) < 0){//linux
-			if(execve(jobs[i].args[0], jobs[i].args, environ) < 0){//os x
-				printf("ERROR: exec for %s\n", jobs[i].args[0]);
-				printf("ERROR: most likely %s not in PATH\n", jobs[i].args[0]);
+		
+			pid=fork();
+			if (pid == 0) {
+				//childProcesses;
+				
+			} else {
+				//parentProcesses();
 			}
+
+			
+			//if(execvpe(jobs[i].args[0], jobs[i].args, environ) < 0){//linux?
+			if(execve(jobs[i].args[0], jobs[i].args, environ) < 0){//os x?
+				printf("ERROR 157: exec for %s\n", jobs[i].args[0]);
+				printf("ERROR: most likely %s not in PATH\n", jobs[i].args[0]);
+			} else {
+				printf("made it here\n");
+			}
+
 			
 			// system(cmd);
 		}
