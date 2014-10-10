@@ -6,16 +6,22 @@
 /*
  * [X] Run executables without arguments (10)
  * [X] Run executables with arguments (10)
- * [ ] set for HOME and PATH work properly (5)
+ * [X] set for HOME and PATH work properly (5)
  * [X] exit and quit work properly (5)
  * [X] cd (with and without arguments) works properly (5)
- * [ ] PATH works properly. Give error messages when the executable is not found (10)
+ * [ ] PATH works properly. Give error messages when the executable is not 		found (10)
  * [ ] Child processes inherit the environment (5)
  * [ ] Allow background/foreground execution (&) (5)
- * [ ] Printing/reporting of background processes, (including the jobs command) (10)
+ * [ ] Printing/reporting of background processes, (including the jobs 		command) (10)
  * [ ] Allow file redirection (> and <) (5)
  * [ ] Allow (1) pipe (|) (10)
  * [ ] Supports reading commands from prompt and from file (10)
+ * [ ] Report (10)
+ * [ ] Bonus points:
+ * 	[ ] Support multiple pipes in one command (10)
+ * 	[ ] kill command delivers signals to background processes. The kill 		command has the format: kill SIGNUM, JOBID, where SIGNUM is an integer
+	specifying the signal number, and JOBID is an integer that specifies
+	the job that should receive the signal (5)
  */
 
 #define MAX_LENGTH 1024
@@ -25,13 +31,15 @@
 #define DELIMS " \t\r\n"
 
 int idcount = 1;
+extern char ** environ;
 
 struct Job {
 	int id, argNum;
 	char *args[MAX_ARGS];
 
 	Job() {
-		id = 0;
+		id = idcount;
+		idcount++;
 		argNum = 0;
 		for(int i = 0; i < MAX_ARGS; i++){
 			args[i] = new char[256];
@@ -101,7 +109,7 @@ int execute(Job* jobs) {
 	} else if (strcmp(jobs[0].args[0], "set") == 0){
 		printf("Set environment (generally PATH or HOME)\n");
 
-		setenv(jobs[0].args[1], jobs[0].args[2], 1);
+		if(setenv(jobs[0].args[1], jobs[0].args[2], 1);
  
 	// Runs an executable with using arguments in job struct
 	} else {
@@ -110,7 +118,9 @@ int execute(Job* jobs) {
 		for(int i = 1; i < jobs[0].argNum; i++){
 			strcat(strcat(cmd, " "), jobs[0].args[i]);
 		}
-		system(cmd);
+
+		execvpe(jobs[0].args[0], jobs[0].args, env);
+		// system(cmd);
 	}
 
 	// Return 0 to continue and 1 to exit. 
@@ -133,7 +143,6 @@ int main(int argc, char **argv, char **envp) {
 		// Turns input into jobs
 		parse(jobs);
 		
-
 		// Executes jobs
    		exitbit = execute(jobs);
 	}
