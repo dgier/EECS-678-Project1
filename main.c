@@ -9,7 +9,7 @@
  * [X] set for HOME and PATH work properly (5)
  * [X] exit and quit work properly (5)
  * [X] cd (with and without arguments) works properly (5)
- * [ ] PATH works properly. Give error messages when the executable is not 		found (10)
+ * [X] PATH works properly. Give error messages when the executable is not 		found (10)
  * [ ] Child processes inherit the environment (5)
  * [ ] Allow background/foreground execution (&) (5)
  * [ ] Printing/reporting of background processes, (including the jobs 		command) (10)
@@ -133,6 +133,7 @@ int execute(Job* jobs) {
 		// Execute file using arguments
 		if(execvpe(jobs[0].args[0], jobs[0].args, environ) < 0){
 			printf("ERROR: exec for %s\n", jobs[0].args[0]);
+			printf("ERROR: most likely %s not in PATH", jobs[0].args[0]);
 		}
 
 		// system(cmd);
@@ -160,6 +161,8 @@ int main(int argc, char **argv, char **envp) {
 		
 		// Executes jobs
    		exitbit = execute(jobs);
+
+		printf("exitbit: %i\n", exitbit);
 	}
 	
 	return 0;
