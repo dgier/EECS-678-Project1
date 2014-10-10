@@ -36,7 +36,7 @@ extern char ** environ;
 pid_t pid;
 
 struct Job {
-	int id, argNum;
+	int id, argNum, outPipeId, inPipeId;
 	char *args[MAX_ARGS];
 	bool background;
 	FILE * input, output;
@@ -45,6 +45,8 @@ struct Job {
 		id = idcount;
 		idcount++;
 		argNum = 0;
+		outPipeId = 0;
+		inPipeId = 0; //idcount starts at 1 so if 0, not piping to/from other job.
 		background = false;
 		for(int i = 0; i < MAX_ARGS; i++){
 			args[i] = new char[256];
@@ -69,21 +71,30 @@ int parse(Job* jobs) {
 	
 	char* thisArg;
 	thisArg = strtok(line," \n");
-	int argCount = 0;
+	int argCount = 0, jobCount = 0; 
 	while(!(thisArg == NULL)) {
-		strcpy(jobs[0].args[argCount], thisArg);
+		strcpy(jobs[jobCount].args[argCount], thisArg);
+		
+		if (strcmp(thisArg, "&")) {
+			jobs[jobCount].background = true;
+		} else if (strcmp(thisArg, "|") {
+			jobs[jobCount].outPipeId = id+1; //let the curr job know who to output to the next job
+			jobs[jobCount+1].inPipeId = jobs[jobCount].id; //let the new job know who take input from NOTE MAY CAUSE SEG FAULT CHECK THIS
+			jobCount++; //starting to read new job to pipe to
+		}
+		
 		argCount++;
 		thisArg = strtok(NULL," =\n");
 	}
 	
-	jobs[0].argNum = argCount;	
+	jobs[jobCount].argNum = argCount;	
 	
 	for(int i = 0; i < jobs[0].argNum; i++){
 		printf("Arg[%i] = %s\n", i, jobs[0].args[i]);
 	}
 	
 	// Return number of jobs
-	return 1;
+	return jobCount+1;
 }
 
 int execute(Job* jobs, int numJobs) {
@@ -144,15 +155,17 @@ int execute(Job* jobs, int numJobs) {
 			pid=fork();
 			if (pid == 0) {
 				//childProcesses;
+				printf("childProcesess\n");
 				
 			} else {
+				printf("parentProcess\n");
 				//parentProcesses();
 			}
 
 			
 			//if(execvpe(jobs[i].args[0], jobs[i].args, environ) < 0){//linux?
 			if(execve(jobs[i].args[0], jobs[i].args, environ) < 0){//os x?
-				printf("ERROR 157: exec for %s\n", jobs[i].args[0]);
+				printf("ERROR 155: exec for %s\n", jobs[i].args[0]);
 				printf("ERROR: most likely %s not in PATH\n", jobs[i].args[0]);
 			} else {
 				printf("made it here\n");
