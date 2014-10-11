@@ -168,11 +168,13 @@ int execute(Job* jobs, int numJobs) {
 				// Redirect standard in (due to '<')
 				if (!jobs[i].input.isEmpty()) {
 					dup2(fileno(jobs[i].input), STDIN_FILENO);
+					fclose(jobs[i].input);
 				}
 
 				// Redirect standard out (due to '>')
 				if (!jobs[i].output.isEmpty()) {
 					dup2(fileno(jobs[i].output), STDOUT_FILENO);
+					fclose(jobs[i].output);
 				}
 
 				if ((jobs[i].inPipeId != -1) || (jobs[i].outPipeId != -1)) { //remember by default all id's > -1 so -1 means empty
