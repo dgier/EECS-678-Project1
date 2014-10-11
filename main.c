@@ -157,12 +157,6 @@ int execute(Job* jobs, int numJobs) {
 			
 			// Runs an executable with using arguments in job struct
 		} else {
-			/*		char cmd[MAX_LENGTH] = {0};
-			 strcat(cmd, jobs[i].args[0]);
-			 for(int i = 1; i < jobs[i].argNum; i++){
-			 strcat(strcat(cmd, " "), jobs[i].args[i]);
-			 }
-			 */
 			
 			// Execute file using arguments
 		
@@ -170,6 +164,17 @@ int execute(Job* jobs, int numJobs) {
 
 			if (pid == 0) {
 				//childProcesses;
+				
+				// Redirect standard in (due to '<')
+				if (!jobs[i].input.isEmpty()) {
+					dup2(fileno(jobs[i].input), STDIN_FILENO);
+				}
+
+				// Redirect standard out (due to '>')
+				if (!jobs[i].output.isEmpty()) {
+					dup2(fileno(jobs[i].output), STDOUT_FILENO);
+				}
+
 				if ((jobs[i].inPipeId != -1) || (jobs[i].outPipeId != -1)) { //remember by default all id's > -1 so -1 means empty
 					if (jobs[i].inPipeId != -1) {
 						
@@ -222,7 +227,7 @@ int execute(Job* jobs, int numJobs) {
 
 void childExit(int sig) {
 	pid_t pid;
-	int sig;
+	int status;
 
 	pid = waitpid(WAIT_ANY, &status, WNOHANG | WUNTRACED);
 
