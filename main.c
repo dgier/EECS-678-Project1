@@ -26,7 +26,6 @@
  */
 
 #define MAX_LENGTH 1024
-#define DIR_LENGTH 1024
 #define MAX_JOBS 10
 #define MAX_ARGS 10
 #define DELIMS " \t\r\n"
@@ -34,6 +33,8 @@
 int idcount = 0;
 extern char ** environ;
 pid_t pid;
+pid_t forepid = -1;
+bool fore = false;
 
 struct Job {
 	int id, argNum, outPipeId, inPipeId;
@@ -41,6 +42,7 @@ struct Job {
 	bool background;
 	FILE * input;
 	FILE * output;
+	pid_t pid;
 	
 	Job() {
 		id = idcount;
@@ -196,9 +198,16 @@ int execute(Job* jobs, int numJobs) {
 				
 			} else {
 				printf("parentProcess\n");
+
+				jobs[i].pid = pid;
 				//parentProcesses();
 
 				// Wait for child to finish if process is in foreground.
+				forepid = pid;
+				fore = true;
+				while(fore) {
+					pause();
+				}
 	
 				// If running in background, add to job list and move on.
 
@@ -211,14 +220,26 @@ int execute(Job* jobs, int numJobs) {
 	return exitbit;
 }
 
+void childExit(int sig) {
+	pid_t pid;
+	int sig;
+
+	pid = waitpid(WAIT_ANY, &status, WNOHANG | WUNTRACED);
+
+	if (forepid == pid) {
+		forepid = -1;
+		fore = false;
+		return;
+	}
+}
+
 int main(int argc, char **argv, char **envp) {
 	
-	char dir[DIR_LENGTH];
 	int exitbit = 0;
 	int numJobs = 0;
-	
-	getcwd(dir, DIR_LENGTH);
 	int iters = 0;
+	signal(SIGCHLD, childExit);	
+
 	while(exitbit == 0) {
 		printf("iters = %i\n", iters);
 		printf("$ ");
