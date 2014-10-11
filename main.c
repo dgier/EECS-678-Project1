@@ -162,34 +162,39 @@ int execute(Job* jobs, int numJobs) {
 			 }
 			 */
 			
-			// Set argument after last to NULL so exec will know when to stop
-			jobs[i].args[jobs[i].argNum] = NULL;
-			
-			
-			
 			// Execute file using arguments
 		
 			pid=fork();
+
 			if (pid == 0) {
 				//childProcesses;
-				printf("childProcesess\n");
+				printf("childProcess\n");
+				
+				// Set argument after last to NULL so exec will know when to stop
+				jobs[i].args[jobs[i].argNum] = NULL;
+			
+	
+				if(execvpe(jobs[i].args[0], jobs[i].args, environ) < 0){//linux?
+				//if(execve(jobs[i].args[0], jobs[i].args, environ) < 0){//os x?
+					printf("ERROR 155: exec for %s\n", jobs[i].args[0]);
+					printf("ERROR: most likely %s not in PATH\n", jobs[i].args[0]);
+				} else {
+					printf("made it here\n");
+				}
+
+				
+				// system(cmd);
 				
 			} else {
 				printf("parentProcess\n");
 				//parentProcesses();
-			}
 
-			
-			//if(execvpe(jobs[i].args[0], jobs[i].args, environ) < 0){//linux?
-			if(execve(jobs[i].args[0], jobs[i].args, environ) < 0){//os x?
-				printf("ERROR 155: exec for %s\n", jobs[i].args[0]);
-				printf("ERROR: most likely %s not in PATH\n", jobs[i].args[0]);
-			} else {
-				printf("made it here\n");
-			}
+				// Wait for child to finish if process is in foreground.
+	
+				// If running in background, add to job list and move on.
 
-			
-			// system(cmd);
+
+			}
 		}
 	}
 	printf("exitbit leaving execute %i\n", exitbit);
