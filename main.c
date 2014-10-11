@@ -76,33 +76,36 @@ int parse(Job* jobs) {
 	thisArg = strtok(line," \n");
 	int argCount = 0, currJob = 0; 
 	while(!(thisArg == NULL)) {
-		strcpy(jobs[currJob].args[argCount], thisArg);
 		
-		if (strcmp(thisArg, "&")) {
+		if (strcmp(thisArg, "&") == 0) {
 			jobs[currJob].background = true;
-		} else if (strcmp(thisArg, "|")) {
+		} else if (strcmp(thisArg, "|") == 0) {
 			jobs[currJob+1]=Job(); //create next job to output to
 			jobs[currJob].outPipeId = jobs[currJob].id+1; //let the curr job know who to output to the next job
 			jobs[currJob+1].inPipeId = jobs[currJob].id; //let the new job know who take input from
 			currJob++; //starting to read new job to pipe to, this should allow multiple pipes per input line once implemented
-		} else if (strcmp(thisArg, "<")) {
+		} else if (strcmp(thisArg, "<") == 0) {
 			thisArg = strtok(NULL, " =\n");	//grab next argument (should be the file name)
 			argCount++;
 			jobs[currJob].input = fopen(thisArg, "r"); //open file in read only
 			if (jobs[currJob].input == NULL) {
 				perror ("Error opening input file\n");
 			}
-		} else if (strcmp(thisArg, ">")) {
+			thisArg = strtok(NULL, " =\n");
+		} else if (strcmp(thisArg, ">") == 0) {
 			thisArg = strtok(NULL, " =\n");	//grab next argument (should be the file name)
 			argCount++;
 			jobs[currJob].output = fopen(thisArg, "w"); //open file in write only
 			if (jobs[currJob].output == NULL) {
 				perror ("Error opening output file\n");
 			}
-		} 
-
+			
+			thisArg = strtok(NULL, " =\n");
+		} else {
+			strcpy(jobs[currJob].args[argCount], thisArg);
+			argCount++;
+		}
 		
-		argCount++;
 		thisArg = strtok(NULL," =\n");
 	}
 	
@@ -166,13 +169,13 @@ int execute(Job* jobs, int numJobs) {
 				//childProcesses;
 				
 				// Redirect standard in (due to '<')
-				if (!jobs[i].input.isEmpty()) {
+				if (jobs[i].input != NULL) {
 					dup2(fileno(jobs[i].input), STDIN_FILENO);
 					fclose(jobs[i].input);
 				}
 
 				// Redirect standard out (due to '>')
-				if (!jobs[i].output.isEmpty()) {
+				if (jobs[i].output != NULL) {
 					dup2(fileno(jobs[i].output), STDOUT_FILENO);
 					fclose(jobs[i].output);
 				}
