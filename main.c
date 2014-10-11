@@ -168,6 +168,15 @@ int execute(Job* jobs, int numJobs) {
 
 			if (pid == 0) {
 				//childProcesses;
+				if ((jobs[i].inPipeId != -1) || (jobs[i].outPipeId != -1)) { //remember by default all id's > -1 so -1 means empty
+					if (jobs[i].inPipeId != -1) {
+						
+						//set up pipe to read from job[inPipeId]
+					}
+					if (jobs[i].outPipeId != -1){
+						//set up pipe to write to job[outPipeId]
+					}
+				}
 				printf("childProcess\n");
 				
 				// Set argument after last to NULL so exec will know when to stop
