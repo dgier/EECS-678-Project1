@@ -126,6 +126,15 @@ int parse(Job* jobs) {
 	return currJob+1;
 }
 
+// Finds a path to a file if it exissts on the PATH
+char * search_path(char* filename) {
+	char* path_to_file;
+	char* path = getenv("PATH");
+
+	return filename;
+
+}
+
 int execute(Job* jobs, int numJobs) {
 	
 	int exitbit = 0;	
@@ -247,7 +256,8 @@ int execute(Job* jobs, int numJobs) {
 				// Set argument after last to NULL so exec will know when to stop
 				jobs[i].args[jobs[i].argNum] = NULL;
 			
-	
+				jobs[i].args[0] = search_path(jobs[i].args[0]);
+
 				//if(execvpe(jobs[i].args[0], jobs[i].args, environ) < 0){//linux?
 				if(execve(jobs[i].args[0], jobs[i].args, environ) < 0){//os x?
 					printf("ERROR 155: exec for %s\n", jobs[i].args[0]);
@@ -283,6 +293,7 @@ int execute(Job* jobs, int numJobs) {
 	return exitbit;
 }
 
+// Exits from a child process
 void childExit(int sig) {
 	pid_t pid;
 	int status;
@@ -309,6 +320,8 @@ int main() {
 	int numJobs = 0;
 	int iters = 0;
 	signal(SIGCHLD, childExit);	
+	char* path = getenv("PATH");
+	printf("%s", path);
 
 	while(exitbit == 0) {
 		printf("$ ");
