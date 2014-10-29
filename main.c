@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <dirent.h>
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -130,7 +131,27 @@ int parse(Job* jobs) {
 char * search_path(char* filename) {
 	char* path_to_file;
 	char* path = getenv("PATH");
+	string cur_path = "";
+	DIR * d;
+	dirent *ent;
 
+	int char_count = 0;
+	while(char_count < strlen(filename)){
+		while(strcmp(path[char_count],":") != 0 && char_count < stren(filename)){
+			curpath += path[char_count];
+			char_count++;
+		}
+		
+		if ((d = opendir(cur_path.c_str())) != NULL) {
+			while ((ent = readdir(d)) != NULL) {
+				if (ent->d_name == filename.c_str()) {
+					return cur_path + '/' + filename;
+				}
+			}
+		}
+		char_count++;
+	
+	}
 	return filename;
 
 }
@@ -320,8 +341,6 @@ int main() {
 	int numJobs = 0;
 	int iters = 0;
 	signal(SIGCHLD, childExit);	
-	char* path = getenv("PATH");
-	printf("%s", path);
 
 	while(exitbit == 0) {
 		printf("$ ");
