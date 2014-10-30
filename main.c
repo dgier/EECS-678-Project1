@@ -127,34 +127,6 @@ int parse(Job* jobs) {
 	return currJob+1;
 }
 
-// Finds a path to a file if it exissts on the PATH
-char * search_path(char* filename) {
-/*	char* path_to_file;
-	char* path = getenv("PATH");
-	string cur_path = "";
-	DIR * d;
-	dirent *ent;
-
-	int char_count = 0;
-	while(char_count < strlen(filename)){
-		while(strcmp(path[char_count],":") != 0 && char_count < stren(filename)){
-			curpath += path[char_count];
-			char_count++;
-		}
-		
-		if ((d = opendir(cur_path.c_str())) != NULL) {
-			while ((ent = readdir(d)) != NULL) {
-				if (ent->d_name == filename.c_str()) {
-					return cur_path + '/' + filename;
-				}
-			}
-		}
-		char_count++;
-	
-	}*/
-	return filename;
-
-}
 
 int execute(Job* jobs, int numJobs) {
 	
@@ -222,16 +194,16 @@ int execute(Job* jobs, int numJobs) {
 			if (pid == 0) {
 				//childProcesses;
 				
-				if ((jobs[i].inPipeId != 0) || (jobs[i].outPipeId != 0)) { //remember by default all id's > 0 so 0 means empty
+				if ((!jobs[i].input.empty()) || (!jobs[i].output.empty())) { //remember by default all id's > 0 so 0 means empty
 				printf("using < or >\n");
-					if (jobs[i].inPipeId != 0) {	// Redirect standard in (due to '<')
+					if (!jobs[i].input.empty()) {	// Redirect standard in (due to '<')
 						printf("inPipeId != 0\n");
 						FILE *f = fopen(jobs[i].input.c_str(), "r");
 						dup2(fileno(f), STDIN_FILENO);
 						fclose(f);
 						//set up pipe to read from job[inPipeId]
 					}
-					if (jobs[i].outPipeId != 0){	// Redirect standard out (due to '>')
+					if (!jobs[i].output.empty()){	// Redirect standard out (due to '>')
 						printf("outPipeId != 0\n");
 						FILE *f = fopen(jobs[i].output.c_str(), "w+");
 						dup2(fileno(f), STDOUT_FILENO);
@@ -240,22 +212,6 @@ int execute(Job* jobs, int numJobs) {
 					}
 				}
 				
-				/*
-				// Redirect standard in (due to '<')
-				if (!jobs[i].input.empty()) {
-					FILE *f = fopen(jobs[i].input.c_str(), "r");
-					dup2(fileno(f), STDIN_FILENO);
-					fclose(f);
-				}
-
-				// Redirect standard out (due to '>')
-				if (!jobs[i].output.empty()) {
-					FILE *f = fopen(jobs[i].output.c_str(), "w+");
-					dup2(fileno(f), STDOUT_FILENO);
-					fclose(f);
-				}*/
-			
-
 				if (numJobs > 1) { 
 					printf("numJobs > 1\n");
 					if (i == 0) { //first pipe
@@ -289,8 +245,6 @@ int execute(Job* jobs, int numJobs) {
 				// Set argument after last to NULL so exec will know when to stop
 				jobs[i].args[jobs[i].argNum] = NULL;
 			
-				jobs[i].args[0] = search_path(jobs[i].args[0]);
-
 				//if(execvpe(jobs[i].args[0], jobs[i].args, environ) < 0){//linux?
 				if(execve(jobs[i].args[0], jobs[i].args, environ) < 0){//os x?
 					printf("ERROR 155: exec for %s\n", jobs[i].args[0]);
