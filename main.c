@@ -17,7 +17,7 @@ using namespace std;
  * [X] exit and quit work properly (5)
  * [X] cd (with and without arguments) works properly (5)
  * [X] PATH works properly. Give error messages when the executable is not found (10)
- * [?] Child processes inherit the environment (5)
+ * [X] Child processes inherit the environment (5)
  * [X] Allow background/foreground execution (&) (5)
  * [X] Printing/reporting of background processes, (including the jobs command) (10)
  * [?] Allow file redirection (> and <) (5)
@@ -144,6 +144,7 @@ int execute(Job* jobs, int numJobs) {
 			if (jobs[i].argNum < 2){
 				if(chdir(getenv("HOME")) < 0) {
 					printf("ERROR: changing directory to HOME\n");
+					exit(1);
 				}
 				
 				// If there is an argument, change to given directory
@@ -156,8 +157,22 @@ int execute(Job* jobs, int numJobs) {
 			
 			// Set PATH or HOME
 		} else if (strcmp(jobs[i].args[0], "set") == 0){
+			char newpath[1024];			
+			char cwd[1024];
+			getcwd(cwd,sizeof(cwd));
+			if(strcmp(jobs[i].args[1], "HOME") == 0){
+				strcpy(newpath,cwd);
+				strcat(newpath,"/");
+				strcat(newpath,jobs[i].args[2]);
+			} else {
+				strcpy(newpath,getenv(jobs[i].args[1]));
+				strcat(newpath,":");
+				strcat(newpath,cwd);
+				strcat(newpath,"/");
+				strcat(newpath,jobs[i].args[2]);
+			}
 			
-			if(setenv(jobs[i].args[1], jobs[i].args[2], 1) < 0){
+			if(setenv(jobs[i].args[1], newpath, 1) < 0){
 				printf("ERROR: set for %s as %s\n", jobs[i].args[1], jobs[i].args[2]);
 			}
 			
@@ -185,7 +200,6 @@ int execute(Job* jobs, int numJobs) {
 		} else {
 			
 			// Execute file using arguments
-			printf("In else block\n");
 			pid=fork();
 
 			if (pid == 0) {
@@ -258,12 +272,44 @@ int execute(Job* jobs, int numJobs) {
 				// Set argument after last to NULL so exec will know when to stop
 				jobs[i].args[jobs[i].argNum] = NULL;
 			
-				jobs[i].args[0] = search_path(jobs[i].args[0]);
+				// If executable is in current directory, run it
+				if(access(jobs[i].args[0], F_OK) != -1) {
+					if(execvpe(jobs[i].args[0], jobs[i].args, environ) < 0){//linux?
+					//if(execve(jobs[i].args[0], jobs[i].args, environ) < 0){//os x?
+						char execfile[100];
+						strcpy(execfile, "./");
+						strcat(execfile, jobs[i].args[0]);
+						if(execvpe(execfile, jobs[i].args, environ) < 0){						
+							printf("ERROR 155: exec for %s\n", jobs[i].args[0]);
+							exit(1);
+						}
+					}
+				} else {
 
-				//if(execvpe(jobs[i].args[0], jobs[i].args, environ) < 0){//linux?
-				if(execve(jobs[i].args[0], jobs[i].args, environ) < 0){//os x?
-					printf("ERROR 155: exec for %s\n", jobs[i].args[0]);
+					// Otherwise search path to find it and run it
+					char* curPath;
+					curPath = strtok(getenv("PATH"),":\n");
+
+					while(curPath != NULL){
+						char execfile[100];
+						strcpy(execfile, curPath);
+						strcat(execfile, "/");
+						strcat(execfile, jobs[i].args[0]);
+
+						if(access(execfile, F_OK) != -1) {
+							if(execvpe(execfile, jobs[i].args, environ) < 0){//linux?
+							//if(execve(jobs[i].args[0], jobs[i].args, environ) < 0){//os x?
+								printf("ERROR 155: exec for %s\n", jobs[i].args[0]);
+								exit(1);
+							}
+						}
+
+						curPath = strtok(NULL,":\n");
+					}
+		
+					printf("ERROR: could not find %s\n", jobs[i].args[0]);
 					printf("ERROR: most likely %s not in PATH\n", jobs[i].args[0]);
+					exit(1);
 				}
 				
 				// system(cmd);
