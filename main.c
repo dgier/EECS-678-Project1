@@ -46,7 +46,7 @@ bool fore = false;
 
 
 struct Job {
-	int id, argNum, outPipeId, inPipeId;
+	int id, argNum;//, outPipeId, inPipeId;
 	char *args[MAX_ARGS];
 	bool background;
 	bool bgRun;
@@ -58,8 +58,8 @@ struct Job {
 		id = idcount;
 		idcount++;
 		argNum = 0;
-		outPipeId = 0;
-		inPipeId = 0; //idcount starts at 1 so if 0, not piping to/from other job.
+		//outPipeId = 0;
+		//inPipeId = 0; //idcount starts at 1 so if 0, not piping to/from other job.
 		background = false;
 		bgRun = false;
 		for(int i = 0; i < MAX_ARGS; i++){
@@ -94,9 +94,9 @@ int parse(Job* jobs) {
 		if (strcmp(thisArg, "&") == 0) {
 			jobs[currJob].background = true;
 		} else if (strcmp(thisArg, "|") == 0) {
-			jobs[currJob+1]=Job(); //create next job to output to
+			/*jobs[currJob+1]=Job(); //create next job to output to
 			jobs[currJob].outPipeId = jobs[currJob].id+1; //let the curr job know who to output to the next job
-			jobs[currJob+1].inPipeId = jobs[currJob].id; //let the new job know who take input from
+			jobs[currJob+1].inPipeId = jobs[currJob].id; //let the new job know who take input from*/
 			currJob++; //starting to read new job to pipe to, this should allow multiple pipes per input line once implemented
 		} else if (strcmp(thisArg, "<") == 0) {
 			thisArg = strtok(NULL, " =\n");	//grab next argument (should be the file name)
@@ -289,7 +289,7 @@ int execute(Job* jobs, int numJobs) {
 						strcat(execfile, jobs[i].args[0]);
 						//if(execvpe(execfile, jobs[i].args, environ) < 0){	//linux					
 						if(execve(execfile, jobs[i].args, environ) < 0){	//os x					
-							printf("ERROR 155: exec for %s\n", jobs[i].args[0]);
+							printf("ERROR 292: exec for %s\n", jobs[i].args[0]);
 							exit(1);
 						}
 					}
@@ -308,7 +308,7 @@ int execute(Job* jobs, int numJobs) {
 						if(access(execfile, F_OK) != -1) {
 							//if(execvpe(execfile, jobs[i].args, environ) < 0){//linux
 							if(execve(execfile, jobs[i].args, environ) < 0){//os x
-								printf("ERROR 155: exec for %s\n", jobs[i].args[0]);
+								printf("ERROR 311: exec for %s\n", jobs[i].args[0]);
 								exit(1);
 							}
 						}
