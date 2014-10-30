@@ -372,6 +372,8 @@ int main() {
 		if(exitbit == 0) {
 			for(int i = 0; i < numJobs; i++) {
 				jobs[i].background = false;
+				jobs[i].input = "";
+				jobs[i].output = "";
 			}
 		}
 	}
