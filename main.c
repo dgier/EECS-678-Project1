@@ -298,15 +298,7 @@ int execute(Job* jobs, int numJobs) {
 				jobs[i].args[jobs[i].argNum] = NULL;
 			
 				// If executable is in current directory, run it
-				printf("path: %s\n", getenv("PATH"));
-				char* curPath;
-				printf("path: %s", getenv("PATH"));
-				curPath = strtok(getenv("PATH"),":\n");
-				printf("curPath: %s\n", curPath);
-
-				printf("attempting exec\n");
 				if(access(jobs[i].args[0], F_OK) != -1) {
-					printf("in this dir\n");
 					if(execvpe(jobs[i].args[0], jobs[i].args, environ) < 0){//linux?
 					//if(execve(jobs[i].args[0], jobs[i].args, environ) < 0){//os x?
 						char execfile[100];
@@ -320,11 +312,9 @@ int execute(Job* jobs, int numJobs) {
 
 					// Otherwise search path to find it and run it
 					char* curPath;
-					printf("path: %s", getenv("PATH"));
 					curPath = strtok(getenv("PATH"),":\n");
 
-					while(!(curPath = NULL)){
-						printf("searching path: %s", curPath);
+					while(curPath != NULL){
 						char execfile[100];
 						strcpy(execfile, curPath);
 						strcat(execfile, "/");
@@ -344,7 +334,6 @@ int execute(Job* jobs, int numJobs) {
 								printf("ERROR: most likely %s not in PATH\n", jobs[i].args[0]);
 				}
 				
-				printf("There is an error in the code. Should never reach here.\n");
 				// system(cmd);
 				
 			} else {
