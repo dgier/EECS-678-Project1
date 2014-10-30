@@ -74,7 +74,7 @@ struct Job {
 
 Job jobs[MAX_JOBS];
 Job bgJobs[1024];
-int bgJobid = 0;
+int bgJobid = 1;
 
 int parse(Job* jobs) {
 	
@@ -83,11 +83,9 @@ int parse(Job* jobs) {
 	// Reads input into 'line'
 	fgets(line, MAX_LENGTH, stdin);
 	
-	
-	
 	char* thisArg;
 	thisArg = strtok(line," \n");
-	int argCount = 0, currJob = 0; 
+	int argCount = 0, currJob = 0;
 	while(!(thisArg == NULL)) {
 		
 		
@@ -125,35 +123,6 @@ int parse(Job* jobs) {
 	
 	// Return number of jobs
 	return currJob+1;
-}
-
-// Finds a path to a file if it exissts on the PATH
-char * search_path(char* filename) {
-/*	char* path_to_file;
-	char* path = getenv("PATH");
-	string cur_path = "";
-	DIR * d;
-	dirent *ent;
-
-	int char_count = 0;
-	while(char_count < strlen(filename)){
-		while(strcmp(path[char_count],":") != 0 && char_count < stren(filename)){
-			curpath += path[char_count];
-			char_count++;
-		}
-		
-		if ((d = opendir(cur_path.c_str())) != NULL) {
-			while ((ent = readdir(d)) != NULL) {
-				if (ent->d_name == filename.c_str()) {
-					return cur_path + '/' + filename;
-				}
-			}
-		}
-		char_count++;
-	
-	}*/
-	return filename;
-
 }
 
 int execute(Job* jobs, int numJobs) {
@@ -203,7 +172,7 @@ int execute(Job* jobs, int numJobs) {
 			}
 
 			if(nobackground) {
-				printf("No background processes running.");
+				printf("No background processes running\n");
 			}
 			
 			// Runs quash using commands from file
@@ -316,7 +285,7 @@ int execute(Job* jobs, int numJobs) {
 				} else {
 					printf("[%d] %d Running in background\n", jobs[i].id, jobs[i].pid);
 					jobs[i].bgRun = true;
-					bgJobs[bgJobid] = jobs[i];
+					bgJobs[bgJobid].id = bgJobid;
 					bgJobid++;
 				}
 			}
@@ -351,7 +320,6 @@ int main() {
 	
 	int exitbit = 0;
 	int numJobs = 0;
-	int iters = 0;
 	signal(SIGCHLD, childExit);	
 
 	while(exitbit == 0) {
@@ -359,17 +327,16 @@ int main() {
 		
 		// Turns input into jobs
 		numJobs = parse(jobs);
-		
+
 		if (numJobs>0) {
 			exitbit = execute(jobs, numJobs);
 		} else {
 			exitbit = 1;
 		}
 		
-		// Executes jobs
-   		//exitbit = execute(jobs, numJobs);
-		
-		iters++;
+		for(int i = 0; i < numJobs; i++) {
+			jobs[i].background = false;
+		}
 	}
 	return 0;
 }
