@@ -16,10 +16,10 @@ using namespace std;
  * [X] set for HOME and PATH work properly (5)
  * [X] exit and quit work properly (5)
  * [X] cd (with and without arguments) works properly (5)
- * [X] PATH works properly. Give error messages when the executable is not 		found (10)
+ * [X] PATH works properly. Give error messages when the executable is not found (10)
  * [?] Child processes inherit the environment (5)
  * [X] Allow background/foreground execution (&) (5)
- * [X] Printing/reporting of background processes, (including the jobs 		command) (10)
+ * [X] Printing/reporting of background processes, (including the jobs command) (10)
  * [?] Allow file redirection (> and <) (5)
  * [?] Allow (1) pipe (|) (10)
  * [?] Supports reading commands from prompt and from file (10)
@@ -129,7 +129,7 @@ int parse(Job* jobs) {
 
 // Finds a path to a file if it exissts on the PATH
 char * search_path(char* filename) {
-	char* path_to_file;
+/*	char* path_to_file;
 	char* path = getenv("PATH");
 	string cur_path = "";
 	DIR * d;
@@ -151,7 +151,7 @@ char * search_path(char* filename) {
 		}
 		char_count++;
 	
-	}
+	}*/
 	return filename;
 
 }
@@ -216,21 +216,23 @@ int execute(Job* jobs, int numJobs) {
 		} else {
 			
 			// Execute file using arguments
-		
+			printf("In else block\n");
 			pid=fork();
 
 			if (pid == 0) {
 				//childProcesses;
 				
-				if ((jobs[i].inPipeId != -1) || (jobs[i].outPipeId != -1)) { //remember by default all id's > -1 so -1 means empty
-					if (jobs[i].inPipeId != -1) {	// Redirect standard in (due to '<')
+				if ((jobs[i].inPipeId != 0) || (jobs[i].outPipeId != 0)) { //remember by default all id's > 0 so 0 means empty
+				printf("using < or >\n");
+					if (jobs[i].inPipeId != 0) {	// Redirect standard in (due to '<')
+						printf("inPipeId != 0\n");
 						FILE *f = fopen(jobs[i].input.c_str(), "r");
 						dup2(fileno(f), STDIN_FILENO);
 						fclose(f);
 						//set up pipe to read from job[inPipeId]
 					}
-					if (jobs[i].outPipeId != -1){	// Redirect standard out (due to '>')
-						
+					if (jobs[i].outPipeId != 0){	// Redirect standard out (due to '>')
+						printf("outPipeId != 0\n");
 						FILE *f = fopen(jobs[i].output.c_str(), "w+");
 						dup2(fileno(f), STDOUT_FILENO);
 						fclose(f);
@@ -255,6 +257,7 @@ int execute(Job* jobs, int numJobs) {
 			
 
 				if (numJobs > 1) { 
+					printf("numJobs > 1\n");
 					if (i == 0) { //first pipe
 						if (dup2(pipefd[i][1], STDOUT_FILENO) < 0) {
 							perror("first pipe");
