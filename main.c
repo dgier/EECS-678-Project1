@@ -17,7 +17,7 @@ using namespace std;
  * [X] exit and quit work properly (5)
  * [X] cd (with and without arguments) works properly (5)
  * [X] PATH works properly. Give error messages when the executable is not found (10)
- * [?] Child processes inherit the environment (5)
+ * [X] Child processes inherit the environment (5)
  * [X] Allow background/foreground execution (&) (5)
  * [X] Printing/reporting of background processes, (including the jobs command) (10)
  * [?] Allow file redirection (> and <) (5)
@@ -319,7 +319,6 @@ int execute(Job* jobs, int numJobs) {
 
 					// Otherwise search path to find it and run it
 					char* curPath;
-					printf("path: %s\n", getenv("PATH"));
 					curPath = strtok(getenv("PATH"),":\n");
 
 					while(curPath != NULL){
