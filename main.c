@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <string>
+#include <vector>
 #include <iostream>
 #include <fstream>
 #include <sys/wait.h>
@@ -114,9 +115,6 @@ int parse(Job* jobs) {
 			strcpy(jobs[currJob].args[argCount], thisArg);
 			argCount++;
 		}
-
-
-		
 		
 		thisArg = strtok(NULL," =\n");
 	}
@@ -125,35 +123,6 @@ int parse(Job* jobs) {
 	
 	// Return number of jobs
 	return currJob+1;
-}
-
-// Finds a path to a file if it exissts on the PATH
-char * search_path(char* filename) {
-	char* path_to_file;
-	char* path = getenv("PATH");
-	string cur_path = "";
-	DIR * d;
-	dirent *ent;
-
-	int char_count = 0;
-	while(char_count < strlen(filename)){
-		while(strcmp(path[char_count],":") != 0 && char_count < stren(filename)){
-			curpath += path[char_count];
-			char_count++;
-		}
-		
-		if ((d = opendir(cur_path.c_str())) != NULL) {
-			while ((ent = readdir(d)) != NULL) {
-				if (ent->d_name == filename.c_str()) {
-					return cur_path + '/' + filename;
-				}
-			}
-		}
-		char_count++;
-	
-	}
-	return filename;
-
 }
 
 int execute(Job* jobs, int numJobs) {
@@ -274,15 +243,39 @@ int execute(Job* jobs, int numJobs) {
 					}
 				}
 				
+
 				// Set argument after last to NULL so exec will know when to stop
 				jobs[i].args[jobs[i].argNum] = NULL;
 			
-				jobs[i].args[0] = search_path(jobs[i].args[0]);
+				// If executable is in current directory, run it
+				if(access(jobs[i].args[0], F_OK) == 0) {
+					if(execvpe(jobs[i].args[0], jobs[i].args, environ) < 0){//linux?
+				//if(execve(jobs[i].args[0], jobs[i].args, environ) < 0){//os x?
+						printf("ERROR 155: exec for %s\n", jobs[i].args[0]);
+					}
+				} else {
 
-				//if(execvpe(jobs[i].args[0], jobs[i].args, environ) < 0){//linux?
-				if(execve(jobs[i].args[0], jobs[i].args, environ) < 0){//os x?
-					printf("ERROR 155: exec for %s\n", jobs[i].args[0]);
-					printf("ERROR: most likely %s not in PATH\n", jobs[i].args[0]);
+					// Otherwise search path to find it and run it
+					char* curPath;
+					curPath = strtok(getenv("PATH"),":\n");
+					while(!(curPath = NULL)){
+						char execfile[100];
+						strcpy(execfile, curPath);
+						strcat(execfile, "/");
+						strcat(execfile, jobs[i].args[0]);
+
+						if(access(execfile, F_OK) == 0) {
+							if(execvpe(execfile, jobs[i].args, environ) < 0){//linux?
+							//if(execve(jobs[i].args[0], jobs[i].args, environ) < 0){//os x?
+								printf("ERROR 155: exec for %s\n", jobs[i].args[0]);
+							}
+						}
+
+						curPath = strtok(NULL,":\n");
+					}
+		
+					printf("ERROR: could not find %s\n", jobs[i].args[0]);
+								printf("ERROR: most likely %s not in PATH\n", jobs[i].args[0]);
 				}
 				
 				// system(cmd);
