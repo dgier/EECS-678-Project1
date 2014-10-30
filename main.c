@@ -205,39 +205,23 @@ int execute(Job* jobs, int numJobs) {
 			if (pid == 0) {
 				//childProcesses;
 				
-				if ((jobs[i].inPipeId != 0) || (jobs[i].outPipeId != 0)) { //remember by default all id's > 0 so 0 means empty
+				if ((!jobs[i].input.empty()) || (!jobs[i].output.empty())) { //remember by default all id's > 0 so 0 means empty
 				printf("using < or >\n");
-					if (jobs[i].inPipeId != 0) {	// Redirect standard in (due to '<')
-						printf("inPipeId != 0\n");
+					if (!jobs[i].input.empty()) {	// Redirect standard in (due to '<')
+						printf("input empty\n");
 						FILE *f = fopen(jobs[i].input.c_str(), "r");
 						dup2(fileno(f), STDIN_FILENO);
 						fclose(f);
 						//set up pipe to read from job[inPipeId]
 					}
-					if (jobs[i].outPipeId != 0){	// Redirect standard out (due to '>')
-						printf("outPipeId != 0\n");
+					if (!jobs[i].output.empty()){	// Redirect standard out (due to '>')
+						printf("output empty\n");
 						FILE *f = fopen(jobs[i].output.c_str(), "w+");
 						dup2(fileno(f), STDOUT_FILENO);
 						fclose(f);
 						//set up pipe to write to job[outPipeId]
 					}
 				}
-				
-				/*
-				// Redirect standard in (due to '<')
-				if (!jobs[i].input.empty()) {
-					FILE *f = fopen(jobs[i].input.c_str(), "r");
-					dup2(fileno(f), STDIN_FILENO);
-					fclose(f);
-				}
-
-				// Redirect standard out (due to '>')
-				if (!jobs[i].output.empty()) {
-					FILE *f = fopen(jobs[i].output.c_str(), "w+");
-					dup2(fileno(f), STDOUT_FILENO);
-					fclose(f);
-				}*/
-			
 
 				if (numJobs > 1) { 
 					printf("numJobs > 1\n");
@@ -272,14 +256,16 @@ int execute(Job* jobs, int numJobs) {
 				// Set argument after last to NULL so exec will know when to stop
 				jobs[i].args[jobs[i].argNum] = NULL;
 			
+
 				// If executable is in current directory, run it
 				if(access(jobs[i].args[0], F_OK) != -1) {
-					if(execvpe(jobs[i].args[0], jobs[i].args, environ) < 0){//linux?
-					//if(execve(jobs[i].args[0], jobs[i].args, environ) < 0){//os x?
+					//if(execvpe(jobs[i].args[0], jobs[i].args, environ) < 0){//linux
+					if(execve(jobs[i].args[0], jobs[i].args, environ) < 0){//os x
 						char execfile[100];
 						strcpy(execfile, "./");
 						strcat(execfile, jobs[i].args[0]);
-						if(execvpe(execfile, jobs[i].args, environ) < 0){						
+						//if(execvpe(execfile, jobs[i].args, environ) < 0){	//linux					
+						if(execve(execfile, jobs[i].args, environ) < 0){	//os x					
 							printf("ERROR 155: exec for %s\n", jobs[i].args[0]);
 							exit(1);
 						}
@@ -297,13 +283,12 @@ int execute(Job* jobs, int numJobs) {
 						strcat(execfile, jobs[i].args[0]);
 
 						if(access(execfile, F_OK) != -1) {
-							if(execvpe(execfile, jobs[i].args, environ) < 0){//linux?
-							//if(execve(jobs[i].args[0], jobs[i].args, environ) < 0){//os x?
+							//if(execvpe(execfile, jobs[i].args, environ) < 0){//linux
+							if(execve(execfile, jobs[i].args, environ) < 0){//os x
 								printf("ERROR 155: exec for %s\n", jobs[i].args[0]);
 								exit(1);
 							}
 						}
-
 						curPath = strtok(NULL,":\n");
 					}
 		
