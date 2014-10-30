@@ -41,6 +41,7 @@ int idcount = 0;
 extern char ** environ;
 pid_t pid;
 pid_t forepid = -1;
+int exitbit = 0;
 bool fore = false;
 
 
@@ -60,6 +61,7 @@ struct Job {
 		outPipeId = 0;
 		inPipeId = 0; //idcount starts at 1 so if 0, not piping to/from other job.
 		background = false;
+		bgRun = false;
 		for(int i = 0; i < MAX_ARGS; i++){
 			args[i] = new char[256];
 		}
@@ -74,7 +76,7 @@ struct Job {
 
 Job jobs[MAX_JOBS];
 Job bgJobs[1024];
-int bgJobid = 1;
+int bgJobid = 0;
 
 int parse(Job* jobs) {
 	
@@ -134,7 +136,7 @@ int execute(Job* jobs, int numJobs) {
 		
 		// Checks whether the command is 'exit' or 'quit' and sets the exit bit
 		if (strcmp(jobs[i].args[0], "exit") == 0 || strcmp(jobs[i].args[0], "quit") == 0) {
-			//exitbit = 1;
+			exitbit = 1;
 			printf("goodbye\n");
 			exit(0);
 			// Change the working directory
@@ -179,9 +181,9 @@ int execute(Job* jobs, int numJobs) {
 			// Prints jobs running in the background
 		} else if (strcmp(jobs[i].args[0], "jobs") == 0) {
 			bool nobackground = true;			
-			for (int i = 0; i < bgJobid; i++) {
-				if(bgJobs[i].bgRun == true){
-					printf("[%d] %d %s\n", i, bgJobs[i].pid, bgJobs[i].args[0]);
+			for (int j = 0; j < bgJobid; j++) {
+				if(bgJobs[j].bgRun == true){
+					printf("[%d] %d %s\n", j, bgJobs[j].pid, bgJobs[j].args[0]);
 					nobackground = false;
 				}
 			}
@@ -314,8 +316,11 @@ int execute(Job* jobs, int numJobs) {
 	
 				// If running in background, add to job list and move on.
 				} else {
-					printf("[%d] %d Running in background\n", jobs[i].id, jobs[i].pid);
+					printf("[%d] %d %s Running in background\n", jobs[i].id, jobs[i].pid, jobs[i].args[0]);
 					jobs[i].bgRun = true;
+					bgJobs[bgJobid].bgRun = true;
+					strcpy(bgJobs[bgJobid].args[0], jobs[i].args[0]);
+					bgJobs[bgJobid].pid = jobs[i].pid;
 					bgJobs[bgJobid].id = bgJobid;
 					bgJobid++;
 				}
@@ -334,8 +339,8 @@ void childExit(int sig) {
 	pid = waitpid(WAIT_ANY, &status, WNOHANG | WUNTRACED);
 
 	for(int i = 0; i < bgJobid; i++){
-		if(jobs[i].pid == pid){
-			jobs[i].bgRun = false;
+		if(bgJobs[i].pid == pid){
+			bgJobs[i].bgRun = false;
 		}
 	}
 
@@ -349,7 +354,6 @@ void childExit(int sig) {
 // Uses environment from unistd.h rather than parsing envp variable given in main function.
 int main() {
 	
-	int exitbit = 0;
 	int numJobs = 0;
 	signal(SIGCHLD, childExit);	
 
@@ -365,8 +369,10 @@ int main() {
 			exitbit = 1;
 		}
 		
-		for(int i = 0; i < numJobs; i++) {
-			jobs[i].background = false;
+		if(exitbit == 0) {
+			for(int i = 0; i < numJobs; i++) {
+				jobs[i].background = false;
+			}
 		}
 	}
 	return 0;
