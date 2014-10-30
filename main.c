@@ -332,6 +332,7 @@ int execute(Job* jobs, int numJobs) {
 		
 					printf("ERROR: could not find %s\n", jobs[i].args[0]);
 								printf("ERROR: most likely %s not in PATH\n", jobs[i].args[0]);
+					exit(1);
 				}
 				
 				// system(cmd);
