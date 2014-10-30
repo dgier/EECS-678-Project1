@@ -187,8 +187,17 @@ int execute(Job* jobs, int numJobs) {
 			
 			// Set PATH or HOME
 		} else if (strcmp(jobs[i].args[0], "set") == 0){
+			char newpath[1024];			
 			
-			if(setenv(jobs[i].args[1], jobs[i].args[2], 1) < 0){
+			if(strcmp(jobs[i].args[1], "HOME") == 0){
+				strcpy(newpath,jobs[i].args[2]);
+			} else {
+				strcpy(newpath,getenv(jobs[i].args[1]));
+				strcat(newpath,":");
+				strcat(newpath,jobs[i].args[2]);
+			}
+			
+			if(setenv(jobs[i].args[1], newpath, 1) < 0){
 				printf("ERROR: set for %s as %s\n", jobs[i].args[1], jobs[i].args[2]);
 			}
 			
