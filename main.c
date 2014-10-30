@@ -185,7 +185,6 @@ int execute(Job* jobs, int numJobs) {
 		} else {
 			
 			// Execute file using arguments
-			printf("In else block\n");
 			pid=fork();
 
 			if (pid == 0) {
@@ -269,23 +268,33 @@ int execute(Job* jobs, int numJobs) {
 				jobs[i].args[jobs[i].argNum] = NULL;
 			
 				// If executable is in current directory, run it
-				if(access(jobs[i].args[0], F_OK) == 0) {
+				printf("path: %s\n", getenv("PATH"));
+				printf("attempting exec\n");
+				if(access(jobs[i].args[0], F_OK) != -1) {
+					printf("in this dir\n");
 					if(execvpe(jobs[i].args[0], jobs[i].args, environ) < 0){//linux?
-				//if(execve(jobs[i].args[0], jobs[i].args, environ) < 0){//os x?
-						printf("ERROR 155: exec for %s\n", jobs[i].args[0]);
+					//if(execve(jobs[i].args[0], jobs[i].args, environ) < 0){//os x?
+						char execfile[100];
+						strcpy(execfile, "./");
+						strcat(execfile, jobs[i].args[0]);
+						if(execvpe(execfile, jobs[i].args, environ) < 0){						
+							printf("ERROR 155: exec for %s\n", jobs[i].args[0]);
+						}
 					}
 				} else {
 
 					// Otherwise search path to find it and run it
 					char* curPath;
+					printf("path: %s", getenv("PATH"));
 					curPath = strtok(getenv("PATH"),":\n");
 					while(!(curPath = NULL)){
+						printf("searching path: %s", curPath);
 						char execfile[100];
 						strcpy(execfile, curPath);
 						strcat(execfile, "/");
 						strcat(execfile, jobs[i].args[0]);
 
-						if(access(execfile, F_OK) == 0) {
+						if(access(execfile, F_OK) != -1) {
 							if(execvpe(execfile, jobs[i].args, environ) < 0){//linux?
 							//if(execve(jobs[i].args[0], jobs[i].args, environ) < 0){//os x?
 								printf("ERROR 155: exec for %s\n", jobs[i].args[0]);
@@ -299,6 +308,7 @@ int execute(Job* jobs, int numJobs) {
 								printf("ERROR: most likely %s not in PATH\n", jobs[i].args[0]);
 				}
 				
+				printf("There is an error in the code. Should never reach here.\n");
 				// system(cmd);
 				
 			} else {
