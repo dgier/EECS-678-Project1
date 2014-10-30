@@ -20,7 +20,7 @@ using namespace std;
  * [X] Child processes inherit the environment (5)
  * [X] Allow background/foreground execution (&) (5)
  * [X] Printing/reporting of background processes, (including the jobs command) (10)
- * [?] Allow file redirection (> and <) (5)
+ * [X] Allow file redirection (> and <) (5)
  * [?] Allow (1) pipe (|) (10)
  * [?] Supports reading commands from prompt and from file (10)
  * [X] Report (10)
@@ -131,6 +131,13 @@ int execute(Job* jobs, int numJobs) {
 	
 	int exitbit = 0;	
 	int pipefd[numJobs-1][2];
+	
+	for (int i = 0; i < numJobs-1; i++) {
+		if (pipe(pipefd[i]) < 0) {
+			perror("initializing pipes");
+			exit(0);
+		}
+	}
 		
 	for (int i = 0; i < numJobs; i++) {		
 		
@@ -226,30 +233,44 @@ int execute(Job* jobs, int numJobs) {
 				}
 
 				if (numJobs > 1) { 
-					printf("numJobs > 1\n");
-					if (i == 0) { //first pipe
+					printf("numJobs = %d, i=%d\n", numJobs, i);
+					/*if (i == 0) { //first pipe - write only
 						if (dup2(pipefd[i][1], STDOUT_FILENO) < 0) {
 							perror("first pipe");
 						}
-					} else if (i < numJobs-1) {
+					} else if (i < numJobs-1) { //middle pipe - read then write
 						if (dup2(pipefd[i-1][0], STDIN_FILENO) < 0) {
 							perror("middle pipe read");
 						}
 						if (dup2(pipefd[i][1], STDOUT_FILENO) < 0) {
 							perror("middle pipe write");
 						}
-					} else if (i == numJobs-1) {
+					} else if (i == numJobs-1) { //last pipe - read only
 						if (dup2(pipefd[i-1][0], STDIN_FILENO) < 0)
 							perror("last pipe");
+					}*/
+					
+					if (i > 0) {
+						printf("not first\n");
+						if (dup2(pipefd[i-1][0], STDIN_FILENO) < 0) {
+							perror("read pipe error");
+						}
+					}
+					
+					if (i < numJobs-1) {
+						printf("not last\n");
+						if (dup2(pipefd[i][1], STDOUT_FILENO) < 0) {
+							perror("write pipe error");
+						}
 					}
 					
 					for (int j = 0; j < numJobs-1; j++) {
 						if (close(pipefd[j][1]) < 0) {
-							
+							perror("close writes");
 						}
 						
 						if (close(pipefd[j][0]) < 0) {
-							perror("close all");
+							perror("close reads");
 						}
 					}
 				}
