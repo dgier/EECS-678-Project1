@@ -134,8 +134,9 @@ int execute(Job* jobs, int numJobs) {
 		
 		// Checks whether the command is 'exit' or 'quit' and sets the exit bit
 		if (strcmp(jobs[i].args[0], "exit") == 0 || strcmp(jobs[i].args[0], "quit") == 0) {
-			exitbit = 1;
-			
+			//exitbit = 1;
+			printf("goodbye\n");
+			exit(0);
 			// Change the working directory
 		} else if (strcmp(jobs[i].args[0], "cd") == 0){
 			
@@ -190,6 +191,23 @@ int execute(Job* jobs, int numJobs) {
 			if (pid == 0) {
 				//childProcesses;
 				
+				if ((jobs[i].inPipeId != -1) || (jobs[i].outPipeId != -1)) { //remember by default all id's > -1 so -1 means empty
+					if (jobs[i].inPipeId != -1) {	// Redirect standard in (due to '<')
+						FILE *f = fopen(jobs[i].input.c_str(), "r");
+						dup2(fileno(f), STDIN_FILENO);
+						fclose(f);
+						//set up pipe to read from job[inPipeId]
+					}
+					if (jobs[i].outPipeId != -1){	// Redirect standard out (due to '>')
+						
+						FILE *f = fopen(jobs[i].output.c_str(), "w+");
+						dup2(fileno(f), STDOUT_FILENO);
+						fclose(f);
+						//set up pipe to write to job[outPipeId]
+					}
+				}
+				
+				/*
 				// Redirect standard in (due to '<')
 				if (!jobs[i].input.empty()) {
 					FILE *f = fopen(jobs[i].input.c_str(), "r");
@@ -202,7 +220,7 @@ int execute(Job* jobs, int numJobs) {
 					FILE *f = fopen(jobs[i].output.c_str(), "w+");
 					dup2(fileno(f), STDOUT_FILENO);
 					fclose(f);
-				}
+				}*/
 			
 
 				if (numJobs > 1) { 
@@ -352,6 +370,5 @@ int main() {
 		
 		iters++;
 	}
-	printf("goodbye\n");
 	return 0;
 }
