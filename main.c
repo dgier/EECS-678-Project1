@@ -175,6 +175,7 @@ int execute(Job* jobs, int numJobs) {
 			if (jobs[i].argNum < 2){
 				if(chdir(getenv("HOME")) < 0) {
 					printf("ERROR: changing directory to HOME\n");
+					exit(1);
 				}
 				
 				// If there is an argument, change to given directory
@@ -188,12 +189,17 @@ int execute(Job* jobs, int numJobs) {
 			// Set PATH or HOME
 		} else if (strcmp(jobs[i].args[0], "set") == 0){
 			char newpath[1024];			
-			
+			char cwd[1024];
+			getcwd(cwd,sizeof(cwd));
 			if(strcmp(jobs[i].args[1], "HOME") == 0){
-				strcpy(newpath,jobs[i].args[2]);
+				strcpy(newpath,cwd);
+				strcat(newpath,"/");
+				strcat(newpath,jobs[i].args[2]);
 			} else {
 				strcpy(newpath,getenv(jobs[i].args[1]));
 				strcat(newpath,":");
+				strcat(newpath,cwd);
+				strcat(newpath,"/");
 				strcat(newpath,jobs[i].args[2]);
 			}
 			
@@ -306,12 +312,14 @@ int execute(Job* jobs, int numJobs) {
 						strcat(execfile, jobs[i].args[0]);
 						if(execvpe(execfile, jobs[i].args, environ) < 0){						
 							printf("ERROR 155: exec for %s\n", jobs[i].args[0]);
+							exit(1);
 						}
 					}
 				} else {
 
 					// Otherwise search path to find it and run it
 					char* curPath;
+					printf("path: %s\n", getenv("PATH"));
 					curPath = strtok(getenv("PATH"),":\n");
 
 					while(curPath != NULL){
@@ -324,6 +332,7 @@ int execute(Job* jobs, int numJobs) {
 							if(execvpe(execfile, jobs[i].args, environ) < 0){//linux?
 							//if(execve(jobs[i].args[0], jobs[i].args, environ) < 0){//os x?
 								printf("ERROR 155: exec for %s\n", jobs[i].args[0]);
+								exit(1);
 							}
 						}
 
@@ -331,7 +340,7 @@ int execute(Job* jobs, int numJobs) {
 					}
 		
 					printf("ERROR: could not find %s\n", jobs[i].args[0]);
-								printf("ERROR: most likely %s not in PATH\n", jobs[i].args[0]);
+					printf("ERROR: most likely %s not in PATH\n", jobs[i].args[0]);
 					exit(1);
 				}
 				
