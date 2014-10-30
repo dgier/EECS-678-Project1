@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <string>
-#include <vector>
 #include <iostream>
 #include <fstream>
 #include <sys/wait.h>
@@ -115,6 +114,9 @@ int parse(Job* jobs) {
 			strcpy(jobs[currJob].args[argCount], thisArg);
 			argCount++;
 		}
+
+
+		
 		
 		thisArg = strtok(NULL," =\n");
 	}
@@ -123,6 +125,35 @@ int parse(Job* jobs) {
 	
 	// Return number of jobs
 	return currJob+1;
+}
+
+// Finds a path to a file if it exissts on the PATH
+char * search_path(char* filename) {
+/*	char* path_to_file;
+	char* path = getenv("PATH");
+	string cur_path = "";
+	DIR * d;
+	dirent *ent;
+
+	int char_count = 0;
+	while(char_count < strlen(filename)){
+		while(strcmp(path[char_count],":") != 0 && char_count < stren(filename)){
+			curpath += path[char_count];
+			char_count++;
+		}
+		
+		if ((d = opendir(cur_path.c_str())) != NULL) {
+			while ((ent = readdir(d)) != NULL) {
+				if (ent->d_name == filename.c_str()) {
+					return cur_path + '/' + filename;
+				}
+			}
+		}
+		char_count++;
+	
+	}*/
+	return filename;
+
 }
 
 int execute(Job* jobs, int numJobs) {
@@ -253,22 +284,17 @@ int execute(Job* jobs, int numJobs) {
 					}
 				}
 				
-				if ((jobs[i].inPipeId != -1) || (jobs[i].outPipeId != -1)) { //remember by default all id's > -1 so -1 means empty
-					if (jobs[i].inPipeId != -1) {
-						
-						//set up pipe to read from job[inPipeId]
-					}
-					if (jobs[i].outPipeId != -1){
-						//set up pipe to write to job[outPipeId]
-					}
-				}
-				
-
+								
 				// Set argument after last to NULL so exec will know when to stop
 				jobs[i].args[jobs[i].argNum] = NULL;
 			
 				// If executable is in current directory, run it
 				printf("path: %s\n", getenv("PATH"));
+				char* curPath;
+				printf("path: %s", getenv("PATH"));
+				curPath = strtok(getenv("PATH"),":\n");
+				printf("curPath: %s\n", curPath);
+
 				printf("attempting exec\n");
 				if(access(jobs[i].args[0], F_OK) != -1) {
 					printf("in this dir\n");
@@ -287,6 +313,7 @@ int execute(Job* jobs, int numJobs) {
 					char* curPath;
 					printf("path: %s", getenv("PATH"));
 					curPath = strtok(getenv("PATH"),":\n");
+
 					while(!(curPath = NULL)){
 						printf("searching path: %s", curPath);
 						char execfile[100];
