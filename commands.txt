@@ -1,0 +1,4 @@
+HelloWorld fromfile
+slow &
+jobs
+quit
