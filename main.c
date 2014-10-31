@@ -188,8 +188,9 @@ int execute(Job* jobs, int numJobs) {
 		// Return PATH or HOME
 		} else if (strcmp(jobs[i].args[0], "get") == 0){
 
-			char thisenv[] = getenv(jobs[i].args[1]);
-			printf("%s = %s", jobs[i].args[1], thisenv); 			
+			char thisenv[1024];
+			strcpy(thisenv, getenv(jobs[i].args[1]));
+			printf("%s = %s\n", jobs[i].args[1], thisenv); 			
 			
 			// Prints jobs running in the background
 		} else if (strcmp(jobs[i].args[0], "jobs") == 0) {
