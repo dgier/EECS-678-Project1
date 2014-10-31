@@ -21,11 +21,11 @@ using namespace std;
  * [X] Allow background/foreground execution (&) (5)
  * [X] Printing/reporting of background processes, (including the jobs command) (10)
  * [X] Allow file redirection (> and <) (5)
- * [?] Allow (1) pipe (|) (10)
- * [?] Supports reading commands from prompt and from file (10)
+ * [X] Allow (1) pipe (|) (10)
+ * [X] Supports reading commands from prompt and from file (10)
  * [X] Report (10)
  * [ ] Bonus points:
- *  [?]	Support multiple pipes in one command (10)
+ *  [X]	Support multiple pipes in one command (10)
  *  [ ]	kill command delivers signals to background processes. The kill 		
  *		command has the format: kill SIGNUM, JOBID, where SIGNUM is an integer
  *		specifying the signal number, and JOBID is an integer that specifies
