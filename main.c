@@ -319,7 +319,7 @@ int execute(Job* jobs, int numJobs) {
 	
 				// If running in background, add to job list and move on.
 				} else {
-					printf("[%d] %d %s Running in background\n", jobs[i].id, jobs[i].pid, jobs[i].args[0]);
+					printf("[%d] %d %s Running in background\n", bgJobid, jobs[i].pid, jobs[i].args[0]);
 					jobs[i].bgRun = true;
 					bgJobs[bgJobid].bgRun = true;
 					strcpy(bgJobs[bgJobid].args[0], jobs[i].args[0]);
