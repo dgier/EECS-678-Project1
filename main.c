@@ -159,6 +159,7 @@ int execute(Job* jobs, int numJobs) {
 
 				if(chdir(jobs[i].args[1]) < 0){
 					printf("ERROR: changing directory to %s\n", jobs[i].args[1]);
+					exit(1);
 				}
 			}
 			
@@ -181,7 +182,14 @@ int execute(Job* jobs, int numJobs) {
 			
 			if(setenv(jobs[i].args[1], newpath, 1) < 0){
 				printf("ERROR: set for %s as %s\n", jobs[i].args[1], jobs[i].args[2]);
+				exit(1);
 			}
+
+		// Return PATH or HOME
+		} else if (strcmp(jobs[i].args[0], "get") == 0){
+
+			char thisenv[] = getenv(jobs[i].args[1]);
+			printf("%s = %s", jobs[i].args[1], thisenv); 			
 			
 			// Prints jobs running in the background
 		} else if (strcmp(jobs[i].args[0], "jobs") == 0) {
