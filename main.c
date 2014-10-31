@@ -276,7 +276,6 @@ int execute(Job* jobs, int numJobs) {
 						}
 					}
 				} else {
-					printf("in else block\n");
 					// Otherwise search path to find it and run it
 					char* curPath;
 					curPath = strtok(getenv("PATH"),":\n");
