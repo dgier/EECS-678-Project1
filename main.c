@@ -94,10 +94,19 @@ int parse(Job* jobs) {
 		if (strcmp(thisArg, "&") == 0) {
 			jobs[currJob].background = true;
 		} else if (strcmp(thisArg, "|") == 0) {
+			printf("currJob: %d    argCount: %d     thisArg: %s\n", currJob, argCount, thisArg);
 			/*jobs[currJob+1]=Job(); //create next job to output to
 			jobs[currJob].outPipeId = jobs[currJob].id+1; //let the curr job know who to output to the next job
 			jobs[currJob+1].inPipeId = jobs[currJob].id; //let the new job know who take input from*/
+			//strcpy(jobs[currJob].args[argCount], thisArg);
+			
+			jobs[currJob].argNum = argCount;
 			currJob++; //starting to read new job to pipe to, this should allow multiple pipes per input line once implemented
+			argCount = 0;
+			//thisArg = strtok(NULL, " =\n");
+			
+		//	strcpy(jobs[currJob].args[0], thisArg);
+			
 		} else if (strcmp(thisArg, "<") == 0) {
 			thisArg = strtok(NULL, " =\n");	//grab next argument (should be the file name)
 			jobs[currJob].input = thisArg; //open file in read only
@@ -112,6 +121,7 @@ int parse(Job* jobs) {
 			}
 		} else {
 			strcpy(jobs[currJob].args[argCount], thisArg);
+			printf("currJob: %d    argCount: %d     thisArg: %s\n", currJob, argCount, thisArg);
 			argCount++;
 		}
 
@@ -128,6 +138,14 @@ int parse(Job* jobs) {
 }
 
 int execute(Job* jobs, int numJobs) {
+	
+	for (int i = 0; i < numJobs; i++) {
+		printf("Job %d\n", i);
+		for (int j = 0; j < jobs[i].argNum; j++) {
+			printf("arg %d: %s     ", j, jobs[i].args[j]);
+		}
+		printf("\n");
+	}
 	
 	int exitbit = 0;	
 	int pipefd[numJobs-1][2];
@@ -217,14 +235,14 @@ int execute(Job* jobs, int numJobs) {
 				if ((!jobs[i].input.empty()) || (!jobs[i].output.empty())) { //remember by default all id's > 0 so 0 means empty
 				printf("using < or >\n");
 					if (!jobs[i].input.empty()) {	// Redirect standard in (due to '<')
-						printf("input empty\n");
+						printf("input not empty\n");
 						FILE *f = fopen(jobs[i].input.c_str(), "r");
 						dup2(fileno(f), STDIN_FILENO);
 						fclose(f);
 						//set up pipe to read from job[inPipeId]
 					}
 					if (!jobs[i].output.empty()){	// Redirect standard out (due to '>')
-						printf("output empty\n");
+						printf("output not empty\n");
 						FILE *f = fopen(jobs[i].output.c_str(), "w+");
 						dup2(fileno(f), STDOUT_FILENO);
 						fclose(f);
@@ -276,17 +294,22 @@ int execute(Job* jobs, int numJobs) {
 				}
 				
 								
+				
+				printf("a: %s\n", jobs[i].args[0]);
+				
 				// Set argument after last to NULL so exec will know when to stop
 				jobs[i].args[jobs[i].argNum] = NULL;
-			
+				
 
 				// If executable is in current directory, run it
 				if(access(jobs[i].args[0], F_OK) != -1) {
+					printf("in curr dir\n");
 					//if(execvpe(jobs[i].args[0], jobs[i].args, environ) < 0){//linux
 					if(execve(jobs[i].args[0], jobs[i].args, environ) < 0){//os x
 						char execfile[100];
 						strcpy(execfile, "./");
 						strcat(execfile, jobs[i].args[0]);
+						printf("b: %s\n", execfile);
 						//if(execvpe(execfile, jobs[i].args, environ) < 0){	//linux					
 						if(execve(execfile, jobs[i].args, environ) < 0){	//os x					
 							printf("ERROR 292: exec for %s\n", jobs[i].args[0]);
@@ -294,7 +317,7 @@ int execute(Job* jobs, int numJobs) {
 						}
 					}
 				} else {
-
+					printf("in else block\n");
 					// Otherwise search path to find it and run it
 					char* curPath;
 					curPath = strtok(getenv("PATH"),":\n");
@@ -302,9 +325,10 @@ int execute(Job* jobs, int numJobs) {
 					while(curPath != NULL){
 						char execfile[100];
 						strcpy(execfile, curPath);
+						//printf("%s\n", curPath);
 						strcat(execfile, "/");
 						strcat(execfile, jobs[i].args[0]);
-
+						printf("c: %s\n", jobs[i].args[0]);
 						if(access(execfile, F_OK) != -1) {
 							//if(execvpe(execfile, jobs[i].args, environ) < 0){//linux
 							if(execve(execfile, jobs[i].args, environ) < 0){//os x
